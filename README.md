@@ -1,5 +1,5 @@
-#SCUTUM Firewall
-###Usage:
+# SCUTUM Firewall
+### Usage:
 
 1. Put this application in wicd post connect scripts folder:
 	cp scutum.py /etc/wicd/scripts/postconnect/scutum
@@ -10,7 +10,7 @@
 
 3. Reload wicd service:
 	service wicd restart
-	# If this doesn't work, reboot
+	#If this doesn't work, reboot
 
 4. You're ready to roll
 
