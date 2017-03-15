@@ -1,20 +1,14 @@
 # SCUTUM Firewall
-### Usage:
 
-1. Put this application in wicd post connect scripts folder:
-	cp scutum.py /etc/wicd/scripts/postconnect/scutum
+### What is Scutum?
+Scutum is an ARP firewall that prevents your computer from being arp spoofed. Scutum controls "arptables" in your computer so it accepts ARP packets only from the gateway. This way, when people with malicious intentions cannot spoof your arp table. Scutum also prevents other people from detecting your device on LAN if scutum is used with properly configured TCP/UDP firewall.
 
-2. Set the attributes correctly:
+#
+### Usage & Installation
 ~~~~
-	chmod 755 /etc/wicd/scripts/postconnect/scutum
-	chown root: /etc/wicd/scripts/postconnect/scutum
+git clone https://github.com/K4YT3X/SCUTUM.git
+cd SCUTUM/
+sudo python3 scutum.py --install
+cd ../
+rm -rf SCUTUM/
 ~~~~
-3. Reload wicd service:
-~~~~
-	service wicd restart
-	#If this doesn't work, reboot
-~~~~
-
-4. You're ready to roll
-
-Log file is at /var/log/scutum.log
