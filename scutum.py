@@ -32,7 +32,7 @@ Licensed under the GNU General Public License Version 3 (GNU GPL v3),
 Description: Scutum Prevents the system from being arp spoofed by others
 and allows you to be invisible on LAN if used properly with iptables
 
-!!! DEPENDS ON WICD !!!
+For WICD and Network-Manager
 
 For tutorial please look at the Github Page: https://github.com/K4YT3X/SCUTUM
 
@@ -44,84 +44,19 @@ import os
 import datetime
 import time
 import argparse
+import avalon_framework as avalon
 
 LOGPATH = '/var/log/scutum.log'
-VERSION = '1.3'
+VERSION = '1.4'
 
 
 # -------------------------------- Classes --------------------------------
 
 class NotRoot(Exception):
+	"""
+	The Exception raised when run with insufficient
+	"""
 	pass
-
-
-class ccm():
-	"""
-		This Class defines some output styles and
-		All UNIX colors
-	"""
-
-	# Define Global Color
-	global W, R, G, OR, Y, B, P, C, GR, H, BD, NH
-	# Console colors
-	# Unix Console colors
-	W = '\033[0m'  # white (normal / reset)
-	R = '\033[31m'  # red
-	G = '\033[32m'  # green
-	OR = '\033[33m'  # orange
-	Y = '\033[93m'  # yellow
-	B = '\033[34m'  # blue
-	P = '\033[35m'  # purple
-	C = '\033[96m'  # cyan
-	GR = '\033[37m'  # grey
-	H = '\033[8m'  # hidden
-	BD = '\033[1m'  # Bold
-	NH = '\033[28m'  # not hidden
-
-	def __init__(self, arg):
-		super(ccm, self).__init__()
-		self.arg = arg
-
-	def info(msg):
-		print(G + '[+] INFO: ' + str(msg) + W)
-
-	def t_info(msg):
-		print(W + str(datetime.datetime.now()) + G + ' [+] INFO: ' + str(msg) + W)
-
-	def warning(msg):
-		print(Y + BD + '[!] WARNING: ' + str(msg) + W)
-
-	def error(msg):
-		print(R + BD + '[!] ERROR: ' + str(msg) + W)
-
-	def debug(msg):
-		print(R + BD + '[*] DBG: ' + str(msg) + W)
-
-	def input(msg):
-		res = input(Y + BD + '[?] USER: ' + msg + W)
-		return res
-
-	def ask(msg, default=False):
-		if default is False:
-			while True:
-				ans = ccm.input(msg + ' [y/N]: ')
-				if ans == '' or ans[0].upper() == 'N':
-					return False
-				elif ans[0].upper() == 'Y':
-					return True
-				else:
-					ccm.error('Invalid Input!')
-		elif default is True:
-			while True:
-				ans = ccm.input(msg + ' [Y/n]: ')
-				if ans == '' or ans[0].upper() == 'Y':
-					return True
-				elif ans[0].upper() == 'N':
-					return False
-				else:
-					ccm.error('Invalid Input!')
-		else:
-			raise TypeError('invalid type for positional argument: \' default\'')
 
 
 # -------------------------------- Functions --------------------------------
@@ -173,12 +108,11 @@ def updateArpTables():
 
 def processArguments():
 	"""
-	This funtion takes care of all arguments
+	This function takes care of all arguments
 	"""
 	global args
 	parser = argparse.ArgumentParser()
 	action_group = parser.add_argument_group('ACTIONS')
-	action_group.add_argument("-w", "--wicd", help="Wicd Daemon Argument, only used when called by wicd", action="store_true", default=False)
 	action_group.add_argument("-r", "--reset", help="Allow all ARP packets", action="store_true", default=False)
 	action_group.add_argument("-p", "--purgelog", help="Purge Log File", action="store_true", default=False)
 	action_group.add_argument("--install", help="Install Scutum Automatically", action="store_true", default=False)
@@ -186,69 +120,123 @@ def processArguments():
 	args = parser.parse_args()
 
 
+def installScutum():
+	def install4WICD():
+		avalon.info('Installing scutum for WICD')
+		with open('/etc/wicd/scripts/postconnect/scutum_connect', 'w') as postconnect:
+			postconnect.write('#!/bin/bash\n')
+			postconnect.write('scutum')
+			postconnect.close()
+		with open('/etc/wicd/scripts/postdisconnect/scutum_disconnect', 'w') as postdisconnect:
+			postdisconnect.write('#!/bin/bash\n')
+			postdisconnect.write('scutum --reset')
+			postdisconnect.close()
+		os.system('chown root: /etc/wicd/scripts/postconnect/scutum_connect')
+		os.system('chmod 755 /etc/wicd/scripts/postconnect/scutum_connect')
+		os.system('chown root: /etc/wicd/scripts/postdisconnect/scutum_disconnect')
+		os.system('chmod 755 /etc/wicd/scripts/postdisconnect/scutum_disconnect')
+
+	def install4NM():
+		avalon.warning('Installing for network manager')
+		with open('/etc/network/if-up.d/scutum_connect', 'w') as postconnect:
+			postconnect.write('#!/bin/bash\n')
+			postconnect.write('scutum')
+			postconnect.close()
+		with open('/etc/network/if-post-down.d/scutum_disconnect', 'w') as postdown:
+			postdown.write('#!/bin/bash\n')
+			postdown.write('scutum --reset')
+			postdown.close()
+		os.system('chown root: /etc/network/if-up.d/scutum_connect')
+		os.system('chmod 755 /etc/network/if-up.d/scutum_connect')
+		os.system('chown root: /etc/network/if-post-down.d/scutum_disconnect')
+		os.system('chmod 755 /etc/network/if-post-down.d/scutum_disconnect')
+
+	while True:
+		print(avalon.FM.BD + 'Which network controller do you want to install for?' + avalon.FM.RST)
+		print('1. WICD')
+		print('2. Network-Manager')
+		print('3. Both')
+
+		selection = avalon.gets('Please select: ')
+
+		if selection == '1':
+			install4WICD()
+			break
+		elif selection == '2':
+			install4NM()
+			break
+		elif selection == '3':
+			install4WICD()
+			install4NM()
+			break
+		else:
+			avalon.error('Invalid Input!')
+
+
 # -------------------------------- Execute --------------------------------
 
 processArguments()
+
+if os.getuid() != 0:
+	avalon.error('This program must be run as root!')
+	exit(0)
+
 try:
 	if not (args.purgelog or args.install or args.uninstall):
 		log = open(LOGPATH, 'a+')  # Just for debugging
 		log.write(str(datetime.datetime.now()) + ' ---- START ----\n')
 		log.write(str(datetime.datetime.now()) + '  UID: ' + str(os.getuid()) + '\n')
 	if os.getuid() != 0:  # Arptables requires root
-		ccm.error('Scutum requires root access to run!')
+		avalon.error('Scutum requires root access to run!')
 		raise NotRoot(str(datetime.datetime.now()) + ' Not Root')
 	if args.install:
-		ccm.info('Start Installing Scutum...')
+		avalon.info('Start Installing Scutum...')
 		os.rename(os.path.abspath(__file__), '/usr/bin/scutum')
 		os.system('chown root: /usr/bin/scutum')
 		os.system('chmod 755 /usr/bin/scutum')
-		if os.path.isdir('/etc/wicd/scripts'):
-			with open('/etc/wicd/scripts/postconnect/scutum_connect', 'w') as postconnect:
-				postconnect.write('#!/bin/bash\n')
-				postconnect.write('scutum')
-				postconnect.close()
-			with open('/etc/wicd/scripts/postdisconnect/scutum_disconnect', 'w') as postdisconnect:
-				postdisconnect.write('#!/bin/bash\n')
-				postdisconnect.write('scutum --reset')
-				postdisconnect.close()
-			os.system('chown root: /etc/wicd/scripts/postconnect/scutum_connect')
-			os.system('chmod 755 /etc/wicd/scripts/postconnect/scutum_connect')
-			os.system('chown root: /etc/wicd/scripts/postdisconnect/scutum_disconnect')
-			os.system('chmod 755 /etc/wicd/scripts/postdisconnect/scutum_disconnect')
-		else:
-			ccm.error('WICD folder not found!')
-			ccm.error('Scutum Depends on WICD to run!')
-			exit(1)
-		ccm.info('Installation Complete!')
+		installScutum()
+		avalon.info('Installation Complete!')
 		exit(0)
 	elif args.uninstall:
-		confirmed = ccm.ask('Removal Confirm: ', False)
+		confirmed = avalon.ask('Removal Confirm: ', False)
 		if confirmed:
 			os.remove('/usr/bin/scutum')
-			os.remove('/etc/wicd/scripts/postconnect/scutum_connect')
-			os.remove('/etc/wicd/scripts/postdisconnect/scutum_disconnect')
-			ccm.info('Scutum sucessfully removed!')
+			try:
+				os.remove('/etc/wicd/scripts/postconnect/scutum_connect')
+				os.remove('/etc/wicd/scripts/postdisconnect/scutum_disconnect')
+			except FileNotFoundError:
+				pass
+			try:
+				os.remove('/etc/network/if-up.d/scutum_connect')
+				os.remove('/etc/network/if-post-down.d/scutum_disconnect')
+			except FileNotFoundError:
+				pass
+			avalon.info('Scutum sucessfully removed!')
 			exit(0)
 		else:
-			ccm.warning('Removal Canceled')
+			avalon.warning('Removal Canceled')
 			exit(0)
 	elif args.reset:
 		log.write(str(datetime.datetime.now()) + ' ---- START ----\n')
 		os.system('arptables -P INPUT ACCEPT')
 		os.system('arptables --flush')
-		ccm.info('RST OK')
+		avalon.info('RST OK')
 		log.write(str(datetime.datetime.now()) + ' RESET OK\n')
 		log.write(str(datetime.datetime.now()) + ' ---- FINISH ----\n')
 	elif args.purgelog:
 		os.remove(LOGPATH)
-		ccm.info('LOG PURGE OK')
+		avalon.info('LOG PURGE OK')
 		exit(0)
 	else:
 		os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
 		updateArpTables()
-		ccm.info('OK')
+		avalon.info('OK')
+except KeyboardInterrupt:
+	print('\n')
+	avalon.warning('^C Pressed! Exiting...')
+	exit(0)
 except Exception as er:
-	ccm.error(str(er))
+	avalon.error(str(er))
 	if not (args.purgelog or args.install or args.uninstall):
 		log.write(str(datetime.datetime.now()) + ' -!-! ERROR !-!-\n')
 		log.write(str(er) + '\n')
