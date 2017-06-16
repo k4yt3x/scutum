@@ -29,8 +29,7 @@ Licensed under the GNU General Public License Version 3 (GNU GPL v3),
 
 (C) 2017 K4YT3X
 
-Description: Scutum Prevents the system from being arp spoofed by others
-and allows you to be invisible on LAN if used properly with iptables
+Description: Scutum is a firewall designed for personal computers.
 
 For WICD and Network-Manager
 
@@ -38,16 +37,18 @@ For tutorial please look at the Github Page: https://github.com/K4YT3X/SCUTUM
 
 """
 from __future__ import print_function
-import socket
-import struct
-import os
-import datetime
-import time
 import argparse
 import avalon_framework as avalon
+import datetime
+import ipaddress
+import os
+import socket
+import struct
+import subprocess
+import time
 
 LOGPATH = '/var/log/scutum.log'
-VERSION = '1.4'
+VERSION = '2.0 beta'
 
 
 # -------------------------------- Classes --------------------------------
@@ -82,6 +83,46 @@ def getGatewayMac():
 					if len(field) == 17 and ':' in field:
 						return field
 	return 0
+
+
+def getIP():
+	output = subprocess.Popen(["ifconfig"], stdout=subprocess.PIPE).communicate()[0]
+	output = output.decode().split('\n')
+	ips = []
+	for line in output:
+		if 'inet' in line:
+			ips.append(line[8:].split(' ')[1])
+	for ip in ips:
+		if ip != '127.0.0.1' and not ipaddress.ip_address(ip).is_loopback:
+			return ip
+	return False
+
+
+def allowRouter():
+	if ipaddress.ip_address(getIP()).is_private:
+		os.system('iptables -P INPUT DROP')
+		os.system('iptables -P FORWARD DROP')
+		os.system('iptables -P OUTPUT ACCEPT')
+		os.system('iptables -A INPUT -p tcp --match multiport --dports 1025:65535 -j ACCEPT')
+		os.system('iptables -A INPUT -p udp -s 208.67.222.222 -j ACCEPT')
+		os.system('iptables -A INPUT -p udp -s 208.67.220.220 -j ACCEPT')
+		os.system('iptables -A INPUT -m iprange --src-range 10.0.0.0-10.255.255.255 -j DROP')
+		os.system('iptables -A INPUT -m iprange --src-range 172.16.0.0-172.31.255.255 -j DROP')
+		os.system('iptables -A INPUT -m iprange --src-range 192.168.0.0-192.168.255.255 -j DROP')
+	"""
+	while True:  # Just keep trying forever until the router is found
+		if getGateway() != 0:
+			avalon.subLevelTimeInfo('Accepting Traffic from ' + getGateway())
+			os.system('iptables -A INPUT -s ' + getGateway() + ' -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT')
+			break
+	"""
+
+
+def iptablesReset():
+	os.system('iptables -F && iptables -X')
+	os.system('iptables -P INPUT ACCEPT')
+	os.system('iptables -P FORWARD ACCEPT')
+	os.system('iptables -P OUTPUT ACCEPT')
 
 
 def updateArpTables():
@@ -172,6 +213,22 @@ def installScutum():
 		else:
 			avalon.error('Invalid Input!')
 
+	print(avalon.FM.BD + '\nEnable SCUTUM iptables firewall?' + avalon.FM.RST)
+	print('This firewall uses linux iptables to establish a relatively secure environment')
+	print('However, professional firewall softwares like ufw is recommended')
+	print('Enable this only if you don\'t have a firewall already')
+	avalon.warning('This feature will erase all existing iptables settings!')
+	if avalon.ask('Enable?', False):
+		with open('/etc/scutum.conf', 'w') as scutum_config:
+			scutum_config.write('[SCUTUM CONFIG]\n')
+			scutum_config.write('firewall=true\n')
+		scutum_config.close()
+	else:
+		with open('/etc/scutum.conf', 'w') as scutum_config:
+			scutum_config.write('[SCUTUM CONFIG]\n')
+			scutum_config.write('firewall=false\n')
+		scutum_config.close()
+
 
 # -------------------------------- Execute --------------------------------
 
@@ -186,6 +243,16 @@ try:
 		log = open(LOGPATH, 'a+')  # Just for debugging
 		log.write(str(datetime.datetime.now()) + ' ---- START ----\n')
 		log.write(str(datetime.datetime.now()) + '  UID: ' + str(os.getuid()) + '\n')
+		if not os.path.isfile('/etc/scutum.conf'):
+			avalon.error('SCUTUM Config file not found! Please re-install SCUTUM!')
+			avalon.warning('Please run "scutum --install" before using it for the first time')
+			exit()
+		with open('/etc/scutum.conf', 'r') as scutum_config:
+			for line in scutum_config:
+				if 'firewall' in line and 'true' in line:
+					iptablesEnabled = True
+				elif 'firewall' in line and 'false' in line:
+					iptablesEnabled = False
 	if os.getuid() != 0:  # Arptables requires root
 		avalon.error('Scutum requires root access to run!')
 		raise NotRoot(str(datetime.datetime.now()) + ' Not Root')
@@ -230,6 +297,10 @@ try:
 	else:
 		os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
 		updateArpTables()
+
+		if iptablesEnabled:
+			iptablesReset()
+			allowRouter()
 		avalon.info('OK')
 except KeyboardInterrupt:
 	print('\n')
