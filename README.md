@@ -5,10 +5,9 @@ Current Version: 2.1 beta
 #### Change Log:
 1. Fixed Automatic DNS Whitelisting. SCUTUM UDP firewall will now whitelist your DNS automatically. The previous setting was OpenDNS only.
 
-<br>
 ![scutum](https://user-images.githubusercontent.com/21986859/27244999-2f151bd0-52b7-11e7-80e1-47b23364215b.png)
 
-<br>
+
 ### What is SCUTUM?
 <b>Long story short, ARP firewall. It automatically adds gateways to the whitelist on connect and blocks everthing else to avoid potential threat.</b>
 
@@ -16,7 +15,7 @@ SCUTUM is an ARP firewall that prevents your computer from being arp spoofed. Sc
 
 SCUTUM is also capable of handling tcp/udp/icmp traffic with iptables. You can choose to enable this feature during installation. However, a more professional firewall controller like UFW is recommended. They can handle traffic with more precision.
 
-<br>
+
 #
 ### Usage & Installation
 You should run a installation before running it for the first time for setting up configuration files. 
@@ -41,7 +40,7 @@ $ sudo scutum --install # Run scutum installation wizard and install SCUTUM into
 $ sudo scutum --uninstall # Remove SCUTUM from system completely 
 ~~~~
 
-<br>
+
 #
 ### SCUTUM Workflow:
 #### postconnect
@@ -53,7 +52,7 @@ $ sudo scutum --uninstall # Remove SCUTUM from system completely
 
 [Finished]
 
-<br>
+
 #### postdisconnect
 1. Accept all ARP packets
 
