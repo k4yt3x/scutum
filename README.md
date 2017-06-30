@@ -1,9 +1,10 @@
 # SCUTUM Firewall
 
-Current Version: 2.1 beta
+Current Version: 2.2
 
 #### Change Log:
-1. Fixed Automatic DNS Whitelisting. SCUTUM UDP firewall will now whitelist your DNS automatically. The previous setting was OpenDNS only.
+1. Fixed installation for NetworkManager
+2. Enhanced installation for WICD
 
 ![scutum](https://user-images.githubusercontent.com/21986859/27244999-2f151bd0-52b7-11e7-80e1-47b23364215b.png)
 
