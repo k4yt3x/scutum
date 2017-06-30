@@ -50,7 +50,7 @@ import subprocess
 import time
 
 LOGPATH = '/var/log/scutum.log'
-VERSION = '2.1 beta'
+VERSION = '2.2'
 
 
 # -------------------------------- Classes --------------------------------
@@ -194,7 +194,18 @@ def installScutum():
         """
         Write scutum scripts for WICD
         """
-        avalon.info('Installing scutum for WICD')
+        print(avalon.FG.G + '[+] INFO: Installing for WICD' + avalon.FM.RST + '.....', end='')
+        if not os.path.isdir('/etc/wicd/'):
+            print(avalon.FG.G + avalon.FM.BD + 'ERROR' + avalon.FM.RST)
+            avalon.warning('WICD folder not found! WICD does not appear to be installed!')
+            if avalon.ask('Continue anyway?', False):
+                os.system('mkdir /etc/wicd/')
+                os.system('mkdir /etc/wicd/scripts/')
+                os.system('mkdir /etc/wicd/scripts/postconnect/')
+                os.system('mkdir /etc/wicd/scripts/postdisconnect/')
+            else:
+                avalon.warning('Aborting installation for WICD')
+                return 0
         with open('/etc/wicd/scripts/postconnect/scutum_connect', 'w') as postconnect:
             postconnect.write('#!/bin/bash\n')
             postconnect.write('scutum')
@@ -207,24 +218,46 @@ def installScutum():
         os.system('chmod 755 /etc/wicd/scripts/postconnect/scutum_connect')
         os.system('chown root: /etc/wicd/scripts/postdisconnect/scutum_disconnect')
         os.system('chmod 755 /etc/wicd/scripts/postdisconnect/scutum_disconnect')
+        print(avalon.FG.G + avalon.FM.BD + 'SUCCEED' + avalon.FM.RST)
 
     def install4NM():
         """
         Write scutum scripts for Network Manager
         """
-        avalon.warning('Installing for network manager')
-        with open('/etc/network/if-up.d/scutum_connect', 'w') as postconnect:
-            postconnect.write('#!/bin/bash\n')
-            postconnect.write('scutum')
-            postconnect.close()
-        with open('/etc/network/if-post-down.d/scutum_disconnect', 'w') as postdown:
-            postdown.write('#!/bin/bash\n')
-            postdown.write('scutum --reset')
-            postdown.close()
-        os.system('chown root: /etc/network/if-up.d/scutum_connect')
-        os.system('chmod 755 /etc/network/if-up.d/scutum_connect')
-        os.system('chown root: /etc/network/if-post-down.d/scutum_disconnect')
-        os.system('chmod 755 /etc/network/if-post-down.d/scutum_disconnect')
+        print(avalon.FG.G + '[+] INFO: Installing for NetworkManager' + avalon.FM.RST + '.....', end='')
+        if not os.path.isdir('/etc/NetworkManager/dispatcher.d/'):
+            print(avalon.FG.G + avalon.FM.BD + 'ERROR' + avalon.FM.RST)
+            avalon.warning('NetworkManager folders not found! NetworkManager does not appear to be installed!')
+            if avalon.ask('Continue anyway?', False):
+                os.system('mkdir /etc/NetworkManager/')
+                os.system('mkdir /etc/NetworkManager/dispatcher.d/')
+            else:
+                avalon.warning('Aborting installation for NetworkManager')
+                return 0
+        with open('/etc/NetworkManager/dispatcher.d/scutum', 'w') as nmScript:
+            nmScript.write("#!/bin/bash\n")
+            nmScript.write(" \n")
+            nmScript.write("IF=$1\n")
+            nmScript.write("STATUS=$2\n")
+            nmScript.write(" \n")
+            nmScript.write("if [ \"$IF\" == \"wlan0\" ]\n")
+            nmScript.write("then\n")
+            nmScript.write("    case \"$2\" in\n")
+            nmScript.write("        up)\n")
+            nmScript.write("        scutum\n")
+            nmScript.write("        ;;\n")
+            nmScript.write("        down)\n")
+            nmScript.write("        scutum --reset\n")
+            nmScript.write("        ;;\n")
+            nmScript.write("        *)\n")
+            nmScript.write("        ;;\n")
+            nmScript.write("    esac\n")
+            nmScript.write("fi\n")
+            nmScript.close()
+
+        os.system('chown root: /etc/NetworkManager/dispatcher.d/scutum')
+        os.system('chmod 755 /etc/NetworkManager/dispatcher.d/scutum')
+        print(avalon.FG.G + avalon.FM.BD + 'SUCCEED' + avalon.FM.RST)
 
     while True:
         print(avalon.FM.BD + 'Which network controller do you want to install for?' + avalon.FM.RST)
@@ -256,24 +289,23 @@ def installScutum():
         with open('/etc/scutum.conf', 'w') as scutum_config:  # A very simple config system
             scutum_config.write('[SCUTUM CONFIG]\n')
             scutum_config.write('firewall=true\n')
-        scutum_config.close()
+            scutum_config.close()
     else:
         with open('/etc/scutum.conf', 'w') as scutum_config:
             scutum_config.write('[SCUTUM CONFIG]\n')
             scutum_config.write('firewall=false\n')
-        scutum_config.close()
-
+            scutum_config.close()
 
 
 # -------------------------------- Execute --------------------------------
 
 printIcon()
 processArguments()
-if os.getuid() != 0:
-    avalon.error('This program must be run as root!')
-    exit(0)
 
 try:
+    if os.getuid() != 0:  # Arptables requires root
+        avalon.error('SCUTUM must be run as root!')
+        raise NotRoot(str(datetime.datetime.now()) + ' Not Root')
     if not (args.purgelog or args.install or args.uninstall):
         log = open(LOGPATH, 'a+')  # Just for debugging
         log.write(str(datetime.datetime.now()) + ' ---- START ----\n')
@@ -288,15 +320,13 @@ try:
                     iptablesEnabled = True
                 elif 'firewall' in line and 'false' in line:
                     iptablesEnabled = False
-    if os.getuid() != 0:  # Arptables requires root
-        avalon.error('Scutum requires root access to run!')
-        raise NotRoot(str(datetime.datetime.now()) + ' Not Root')
     if args.install:
         avalon.info('Start Installing Scutum...')
         os.rename(os.path.abspath(__file__), '/usr/bin/scutum')
         os.system('chown root: /usr/bin/scutum')
         os.system('chmod 755 /usr/bin/scutum')
         installScutum()
+        print('\n' + avalon.FM.BD, end='')
         avalon.info('Installation Complete!')
         exit(0)
     elif args.uninstall:
@@ -309,8 +339,7 @@ try:
             except FileNotFoundError:
                 pass
             try:
-                os.remove('/etc/network/if-up.d/scutum_connect')
-                os.remove('/etc/network/if-post-down.d/scutum_disconnect')
+                os.remove('/etc/NetworkManager/dispatcher.d/scutum')
             except FileNotFoundError:
                 pass
             avalon.info('Scutum sucessfully removed!')
@@ -324,7 +353,6 @@ try:
         os.system('arptables --flush')
         avalon.info('RST OK')
         log.write(str(datetime.datetime.now()) + ' RESET OK\n')
-        log.write(str(datetime.datetime.now()) + ' ---- FINISH ----\n')
     elif args.purgelog:
         os.remove(LOGPATH)
         avalon.info('LOG PURGE OK')
