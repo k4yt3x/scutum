@@ -3,7 +3,7 @@
 Current Version: 2.2
 
 #### Change Log:
-1. Fixed installation for NetworkManager
+1. Fixed installation for NetworkManager. Thanks to the issue raised by @bryce-lynch
 2. Enhanced installation for WICD
 
 ![scutum](https://user-images.githubusercontent.com/21986859/27244999-2f151bd0-52b7-11e7-80e1-47b23364215b.png)
