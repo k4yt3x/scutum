@@ -17,8 +17,8 @@ SCUTUM is an ARP firewall that prevents your computer from being arp spoofed. Sc
 
 SCUTUM is also capable of handling tcp/udp/icmp traffic with iptables. You can choose to enable this feature during installation. However, a more professional firewall controller like UFW is recommended. They can handle traffic with more precision.
 
+<br>
 
-#
 ## Usage & Installation
 You should run a installation before running it for the first time for setting up configuration files. 
 <b>I am not sure if portable version is necessary. If you think this should be changed, raise an issue and I will change it.</b>
@@ -42,8 +42,8 @@ $ sudo scutum --install # Run scutum installation wizard and install SCUTUM into
 $ sudo scutum --uninstall # Remove SCUTUM from system completely 
 ~~~~
 
+<br>
 
-#
 ## SCUTUM Workflow:
 #### postconnect
 1. Connect to wifi
