@@ -5,8 +5,10 @@ Current Version: 2.3 Alpha
 #### Change Log:
 1. Fixed interface compatibility issues with different Linux distributions
 
-![scutum](https://user-images.githubusercontent.com/21986859/27244999-2f151bd0-52b7-11e7-80e1-47b23364215b.png)
-
+<br>
+<p align="center"> 
+<img src="https://user-images.githubusercontent.com/21986859/27760965-d228eda6-5e29-11e7-9ba6-3d9cc0408fd8.png">
+</p>
 
 ### What is SCUTUM?
 <b>Long story short, ARP firewall. It automatically adds gateways to the whitelist on connect and blocks everthing else to avoid potential threat.</b>
