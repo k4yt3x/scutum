@@ -50,7 +50,7 @@ import subprocess
 import time
 
 LOGPATH = '/var/log/scutum.log'
-VERSION = '2.2'
+VERSION = '2.3 Alpha'
 
 
 # -------------------------------- Classes --------------------------------
@@ -78,10 +78,12 @@ def getGateway():
     """Get Linux Default Gateway"""
     with open("/proc/net/route") as fh:
         for line in fh:
-            fields = line.strip().split()
-            if fields[1] != '00000000' or not int(fields[3], 16) & 2:
-                continue
-            return socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
+            for iface in interfaces:
+                if iface in line:
+                    fields = line.strip().split()
+                    if fields[1] != '00000000' or not int(fields[3], 16) & 2:
+                        continue
+                    return socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
     return 0
 
 
@@ -240,32 +242,73 @@ def installScutum():
             nmScript.write("IF=$1\n")
             nmScript.write("STATUS=$2\n")
             nmScript.write(" \n")
-            nmScript.write("if [ \"$IF\" == \"wlan0\" ]\n")
-            nmScript.write("then\n")
-            nmScript.write("    case \"$2\" in\n")
-            nmScript.write("        up)\n")
-            nmScript.write("        scutum\n")
-            nmScript.write("        ;;\n")
-            nmScript.write("        down)\n")
-            nmScript.write("        scutum --reset\n")
-            nmScript.write("        ;;\n")
-            nmScript.write("        *)\n")
-            nmScript.write("        ;;\n")
-            nmScript.write("    esac\n")
-            nmScript.write("fi\n")
+            for iface in ifacesSelected:
+                nmScript.write("if [ \"$IF\" == \"" + iface + "\" ]\n")
+                nmScript.write("then\n")
+                nmScript.write("    case \"$2\" in\n")
+                nmScript.write("        up)\n")
+                nmScript.write("        scutum\n")
+                nmScript.write("        ;;\n")
+                nmScript.write("        down)\n")
+                nmScript.write("        scutum --reset\n")
+                nmScript.write("        ;;\n")
+                nmScript.write("        *)\n")
+                nmScript.write("        ;;\n")
+                nmScript.write("    esac\n")
+                nmScript.write("fi\n")
             nmScript.close()
 
         os.system('chown root: /etc/NetworkManager/dispatcher.d/scutum')
         os.system('chmod 755 /etc/NetworkManager/dispatcher.d/scutum')
         print(avalon.FG.G + avalon.FM.BD + 'SUCCEED' + avalon.FM.RST)
 
+    ifacesSelected = []
     while True:
-        print(avalon.FM.BD + 'Which network controller do you want to install for?' + avalon.FM.RST)
+        print(avalon.FM.BD + '\nWhich interface do you wish to install for?' + avalon.FM.RST)
+        ifaces = []
+        with open('/proc/net/dev', 'r') as dev:
+            for line in dev:
+                try:
+                    if line.split(':')[1]:
+                        ifaces.append(line.split(':')[0])
+                except IndexError:
+                    pass
+        if not len(ifaces) == 0:
+            idx = 0
+            for iface in ifaces:
+                print(str(idx) + '. ' + iface.replace(' ', ''))
+                idx += 1
+        print('99. Manually Enter')
+        selection = avalon.gets('Please select (index number):')
+
+        try:
+            if selection == '99':
+                manif = avalon.gets('Interface: ')
+                if manif not in ifacesSelected:
+                    ifacesSelected.append(manif)
+                if avalon.ask('Add more interfaces?', False):
+                    pass
+                else:
+                    break
+            elif int(selection) >= len(ifaces):
+                avalon.error('Selected interface doesn\'t exist!')
+            else:
+                ifacesSelected.append(ifaces[int(selection)].replace(' ', ''))
+                if avalon.ask('Add more interfaces?', False):
+                    pass
+                else:
+                    break
+        except ValueError:
+            avalon.error('Invalid Input!')
+            avalon.error('Please enter the index number!')
+
+    while True:
+        print(avalon.FM.BD + '\nWhich network controller do you want to install for?' + avalon.FM.RST)
         print('1. WICD')
         print('2. Network-Manager')
         print('3. Both')
 
-        selection = avalon.gets('Please select: ')
+        selection = avalon.gets('Please select: (index number)')
 
         if selection == '1':
             install4WICD()
@@ -289,11 +332,13 @@ def installScutum():
         with open('/etc/scutum.conf', 'w') as scutum_config:  # A very simple config system
             scutum_config.write('[SCUTUM CONFIG]\n')
             scutum_config.write('firewall=true\n')
+            scutum_config.write('interfaces=' + ','.join(ifacesSelected))
             scutum_config.close()
     else:
         with open('/etc/scutum.conf', 'w') as scutum_config:
             scutum_config.write('[SCUTUM CONFIG]\n')
             scutum_config.write('firewall=false\n')
+            scutum_config.write('interfaces=' + ','.join(ifacesSelected))
             scutum_config.close()
 
 
@@ -320,6 +365,8 @@ try:
                     iptablesEnabled = True
                 elif 'firewall' in line and 'false' in line:
                     iptablesEnabled = False
+                if 'interfaces' in line:
+                    interfaces = line.split('=')[1].split(',')
     if args.install:
         avalon.info('Start Installing Scutum...')
         os.rename(os.path.abspath(__file__), '/usr/bin/scutum')
