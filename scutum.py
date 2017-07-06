@@ -86,6 +86,7 @@ except ImportError:
         else:
             print('\033[31m\033[1mInvalid Input!\033[0m')
 
+
 LOGPATH = '/var/log/scutum.log'
 VERSION = '2.4.2'
 
