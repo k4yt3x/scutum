@@ -488,10 +488,10 @@ except KeyboardInterrupt:
     exit(0)
 except Exception as er:
     avalon.error(str(er))
-    if not (args.purgelog or args.install or args.uninstall or args.enable or args.disable):
+    if not (args.purgelog or args.install or args.uninstall or args.enable or args.disable or os.getuid() != 0):
         log.write(str(datetime.datetime.now()) + ' -!-! ERROR !-!-\n')
         log.write(str(er) + '\n')
 finally:
-    if not (args.purgelog or args.install or args.uninstall or args.enable or args.disable):
+    if not (args.purgelog or args.install or args.uninstall or args.enable or args.disable or os.getuid() != 0):
         log.write(str(datetime.datetime.now()) + ' ---- FINISH ----\n\n')
         log.close()
