@@ -53,15 +53,6 @@ LOGPATH = '/var/log/scutum.log'
 VERSION = '2.4.1'
 
 
-# -------------------------------- Classes --------------------------------
-
-class NotRoot(Exception):
-    """
-    The Exception raised when run with insufficient privilege
-    """
-    pass
-
-
 # -------------------------------- Functions --------------------------------
 
 
@@ -383,7 +374,7 @@ if not (args.enable or args.disable):
 try:
     if os.getuid() != 0:  # Arptables requires root
         avalon.error('SCUTUM must be run as root!')
-        raise NotRoot(str(datetime.datetime.now()) + ' Not Root')
+        exit(0)
     if not (args.purgelog or args.install or args.uninstall or args.enable or args.disable):
         log = open(LOGPATH, 'a+')  # Just for debugging
         log.write(str(datetime.datetime.now()) + ' ---- START ----\n')
