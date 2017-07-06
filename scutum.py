@@ -23,7 +23,7 @@
 Name: SCUTUM Firewall
 Author: K4T
 Date of Creation: March 8,2017
-Last Modified: June 16,2017
+Last Modified: July 5,2017
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -50,7 +50,7 @@ import subprocess
 import time
 
 LOGPATH = '/var/log/scutum.log'
-VERSION = '2.3 Alpha'
+VERSION = '2.4.1'
 
 
 # -------------------------------- Classes --------------------------------
@@ -116,7 +116,11 @@ def getIP():
     return False
 
 
-def allowRouter():
+def updateIPTables():
+    """
+    Add router to iptables whitelist
+    It
+    """
     if ipaddress.ip_address(getIP()).is_private:
         os.system('iptables -P INPUT DROP')
         os.system('iptables -P FORWARD DROP')
@@ -183,11 +187,18 @@ def processArguments():
     """
     global args
     parser = argparse.ArgumentParser()
-    action_group = parser.add_argument_group('ACTIONS')
-    action_group.add_argument("-r", "--reset", help="Allow all ARP packets", action="store_true", default=False)
-    action_group.add_argument("-p", "--purgelog", help="Purge Log File", action="store_true", default=False)
-    action_group.add_argument("--install", help="Install Scutum Automatically", action="store_true", default=False)
-    action_group.add_argument("--uninstall", help="Uninstall Scutum Automatically", action="store_true", default=False)
+    control_group = parser.add_argument_group('Controls')
+    control_group.add_argument("--start", help="Start SCUTUM once even if disabled", action="store_true", default=False)
+    control_group.add_argument("--enable", help="Enable SCUTUM", action="store_true", default=False)
+    control_group.add_argument("--disable", help="Disable SCUTUM", action="store_true", default=False)
+    control_group.add_argument("--status", help="Show SCUTUM current status")
+    control_group.add_argument("--enablegeneric", help="Enable SCUTUM generic firewall", action="store_true", default=False)
+    control_group.add_argument("--disablegeneric", help="Disnable SCUTUM generic firewall", action="store_true", default=False)
+    control_group.add_argument("--reset", help="Disable SCUTUM temporarily before the next connection", action="store_true", default=False)
+    control_group.add_argument("--purgelog", help="Purge SCUTUM log file", action="store_true", default=False)
+    inst_group = parser.add_argument_group('Installation')
+    inst_group.add_argument("--install", help="Install Scutum Automatically", action="store_true", default=False)
+    inst_group.add_argument("--uninstall", help="Uninstall Scutum Automatically", action="store_true", default=False)
     args = parser.parse_args()
 
 
@@ -262,6 +273,25 @@ def installScutum():
         os.system('chmod 755 /etc/NetworkManager/dispatcher.d/scutum')
         print(avalon.FG.G + avalon.FM.BD + 'SUCCEED' + avalon.FM.RST)
 
+    if not os.path.isfile('/usr/bin/arptables'):
+        print(avalon.FM.BD + avalon.FG.R + '\nWe have detected that you don\'t have arptables installed!' + avalon.FM.RST)
+        print('SCUTUM requires arptables to run')
+        if avalon.ask('Install arptables?', True):
+            if os.path.isfile('/usr/bin/apt'):
+                os.system('apt update && apt install arptables -y')
+            elif os.path.isfile('/usr/bin/yum'):
+                os.system('yum install arptables -y')
+            elif os.path.isfile('/usr/bin/pacman'):
+                os.system('pacman -S arptables --noconfirm')
+            else:
+                avalon.error('Sorry, we can\'t find a package manager that we currently support. Aborting..')
+                print('Currently Supported: apt, yum, pacman')
+                print('Please come to SCUTUM\'s github page and comment if you know how to add support to another package manager')
+                exit(0)
+        else:
+            avalon.error('arptables not installed. Unable to proceed. Aborting..')
+            exit(0)
+
     ifacesSelected = []
     while True:
         print(avalon.FM.BD + '\nWhich interface do you wish to install for?' + avalon.FM.RST)
@@ -332,26 +362,29 @@ def installScutum():
         with open('/etc/scutum.conf', 'w') as scutum_config:  # A very simple config system
             scutum_config.write('[SCUTUM CONFIG]\n')
             scutum_config.write('firewall=true\n')
-            scutum_config.write('interfaces=' + ','.join(ifacesSelected))
+            scutum_config.write('interfaces=' + ','.join(ifacesSelected) + '\n')
+            scutum_config.write('enabled=true\n')
             scutum_config.close()
     else:
         with open('/etc/scutum.conf', 'w') as scutum_config:
             scutum_config.write('[SCUTUM CONFIG]\n')
             scutum_config.write('firewall=false\n')
-            scutum_config.write('interfaces=' + ','.join(ifacesSelected))
+            scutum_config.write('interfaces=' + ','.join(ifacesSelected) + '\n')
+            scutum_config.write('enabled=true\n')
             scutum_config.close()
 
 
 # -------------------------------- Execute --------------------------------
 
-printIcon()
 processArguments()
+if not (args.enable or args.disable):
+        printIcon()
 
 try:
     if os.getuid() != 0:  # Arptables requires root
         avalon.error('SCUTUM must be run as root!')
         raise NotRoot(str(datetime.datetime.now()) + ' Not Root')
-    if not (args.purgelog or args.install or args.uninstall):
+    if not (args.purgelog or args.install or args.uninstall or args.enable or args.disable):
         log = open(LOGPATH, 'a+')  # Just for debugging
         log.write(str(datetime.datetime.now()) + ' ---- START ----\n')
         log.write(str(datetime.datetime.now()) + '  UID: ' + str(os.getuid()) + '\n')
@@ -359,17 +392,39 @@ try:
             avalon.error('SCUTUM Config file not found! Please re-install SCUTUM!')
             avalon.warning('Please run "scutum --install" before using it for the first time')
             exit()
+
+        configIntegrity = []
+        required = ['firewall', 'enabled', 'interfaces']
+
         with open('/etc/scutum.conf', 'r') as scutum_config:
             for line in scutum_config:
                 if 'firewall' in line and 'true' in line:
+                    configIntegrity.append('firewall')
                     iptablesEnabled = True
                 elif 'firewall' in line and 'false' in line:
+                    configIntegrity.append('firewall')
                     iptablesEnabled = False
+
+                if 'enabled' in line and 'true' in line:
+                    configIntegrity.append('enabled')
+                    enabled = True
+                elif 'enabled' in line and 'false' in line:
+                    configIntegrity.append('enabled')
+                    enabled = False
+
                 if 'interfaces' in line:
-                    interfaces = line.split('=')[1].split(',')
+                    configIntegrity.append('interfaces')
+                    interfaces = line.replace('\n', '').split('=')[1].split(',')
+
+        for item in required:
+            if item not in configIntegrity:
+                avalon.error('The program configuration file is broken for some reason')
+                avalon.error('You should reinstall SCUTUM to repair the configuration file')
+                exit(0)
+
     if args.install:
         avalon.info('Start Installing Scutum...')
-        os.rename(os.path.abspath(__file__), '/usr/bin/scutum')
+        os.system('mv ' + os.path.abspath(__file__) + ' /usr/bin/scutum')  # os.rename throws an error when /tmp is in a separate partition
         os.system('chown root: /usr/bin/scutum')
         os.system('chmod 755 /usr/bin/scutum')
         installScutum()
@@ -404,24 +459,48 @@ try:
         os.remove(LOGPATH)
         avalon.info('LOG PURGE OK')
         exit(0)
+    elif args.enable or args.disable:
+        with open('/etc/scutum.conf', 'r') as conf_old:
+            with open('/tmp/scutum.conf', 'w') as conf_new:
+                for line in conf_old:
+                    if 'enabled' in line:
+                        pass
+                    else:
+                        conf_new.write(line)
+                if args.enable:
+                    conf_new.write('enabled=true\n')
+                    os.system('scutum --start')
+                    avalon.info('SCUTUM Enabled')
+                elif args.disable:
+                    conf_new.write('enabled=false\n')
+                    os.system('scutum --reset')
+                    avalon.info('SCUTUM Disabled')
+                conf_new.close()
+            conf_old.close()
+        os.system('mv /tmp/scutum.conf /etc/scutum.conf')  # os.rename throws an error when /tmp is in a separate partition
+        exit(0)
     else:
-        os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
-        updateArpTables()
+        if enabled or args.start:
+            os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
+            updateArpTables()
 
-        if iptablesEnabled:
-            iptablesReset()
-            allowRouter()
-        avalon.info('OK')
+            if iptablesEnabled:
+                iptablesReset()
+                updateIPTables()
+            avalon.info('OK')
+        else:
+            log.write('SCUTUM Disabled, taking no actions')
+            avalon.warning('SCUTUM Disabled, taking no actions')
 except KeyboardInterrupt:
     print('\n')
     avalon.warning('^C Pressed! Exiting...')
     exit(0)
 except Exception as er:
     avalon.error(str(er))
-    if not (args.purgelog or args.install or args.uninstall):
+    if not (args.purgelog or args.install or args.uninstall or args.enable or args.disable):
         log.write(str(datetime.datetime.now()) + ' -!-! ERROR !-!-\n')
         log.write(str(er) + '\n')
 finally:
-    if not (args.purgelog or args.install or args.uninstall):
+    if not (args.purgelog or args.install or args.uninstall or args.enable or args.disable):
         log.write(str(datetime.datetime.now()) + ' ---- FINISH ----\n\n')
         log.close()
