@@ -7,4 +7,4 @@ python:
 install: "pip install avalon_framework"
 
 script:
-    - echo "SCUTUM"
+    - python3 scutum.py
