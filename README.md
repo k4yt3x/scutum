@@ -1,10 +1,11 @@
 [![Join the chat at https://gitter.im/K4YT3X-DEV/SCUTUM](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/K4YT3X-DEV/SCUTUM?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 # SCUTUM Firewall
 
-Current Version: 2.3 Alpha
+Current Version: 2.4.1
 
 #### Change Log:
-1. Fixed interface compatibility issues with different Linux distributions
+1. Added arptables detection and installation wizard
+2. Added enable / disable / start option
 
 <br>
 <p align="center"> 
@@ -36,9 +37,12 @@ rm -rf SCUTUM/
 This should be easy
 SCUTUM starts <b>automatically</b> by itself after installation
 ~~~~
-$ sudo scutum # Start SCUTUM
-$ sudo scutum -r # Reset SCUTUM (Allow all ARP traffic)
-$ sudo scutum -p # Purge SCUTUM logs
+$ sudo scutum # Start SCUTUM Normally
+$ sudo scutum --start # Start SCUTUM Manually for once even it it's disabled
+$ sudo scutum --enable # Enable SCUTUM (Start automatically on connect)
+$ sudo scutum --disable # Disable SCUTUM (Don't start automatically on connect)
+$ sudo scutum --reset # Reset SCUTUM (Allow ALL ARP packages temporarily)
+$ sudo scutum --purgelog # Purge SCUTUM logs
 $ sudo scutum --install # Run scutum installation wizard and install SCUTUM into system
 $ sudo scutum --uninstall # Remove SCUTUM from system completely 
 ~~~~
