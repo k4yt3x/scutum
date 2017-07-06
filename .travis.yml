@@ -4,7 +4,7 @@ language: python
 python:
   - "3.5"
 
-install: "pip install avalon_framework"
+install: "sudo pip install avalon_framework"
 
 script:
     - sudo python3 scutum.py
