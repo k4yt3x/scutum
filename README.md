@@ -3,14 +3,17 @@
 
 # SCUTUM Firewall
 
-Current Version: 2.4.2
+Current Version: 2.4.3
 
 #### Current Version Changelog:
-1. Added installation wizard for avalon framework when not installed. supports 3 methods of automatic installation
+1. Addded option to choose whether to delete the installer file after installation
+2. Fixed arptables detection errors on some Linux distributions
+3. Fixed some bugs that is unnoticeable :D
 
 #### Recent Changes:
-1. Added arptables detection and installation wizard
-2. Added enable / disable / start option
+1. Added installation wizard for avalon framework when not installed. supports 3 methods of automatic installation
+2. Added arptables detection and installation wizard
+3. Added enable / disable / start option
 
 <br>
 <p align="center"> 
