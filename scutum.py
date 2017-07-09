@@ -88,7 +88,7 @@ except ImportError:
 
 
 LOGPATH = '/var/log/scutum.log'
-VERSION = '2.4.2'
+VERSION = '2.4.3'
 
 
 # -------------------------------- Functions --------------------------------
@@ -220,7 +220,7 @@ def processArguments():
     control_group.add_argument("--start", help="Start SCUTUM once even if disabled", action="store_true", default=False)
     control_group.add_argument("--enable", help="Enable SCUTUM", action="store_true", default=False)
     control_group.add_argument("--disable", help="Disable SCUTUM", action="store_true", default=False)
-    control_group.add_argument("--status", help="Show SCUTUM current status")
+    control_group.add_argument("--status", help="Show SCUTUM current status", action="store_true", default=False)
     control_group.add_argument("--enablegeneric", help="Enable SCUTUM generic firewall", action="store_true", default=False)
     control_group.add_argument("--disablegeneric", help="Disnable SCUTUM generic firewall", action="store_true", default=False)
     control_group.add_argument("--reset", help="Disable SCUTUM temporarily before the next connection", action="store_true", default=False)
@@ -302,7 +302,7 @@ def installScutum():
         os.system('chmod 755 /etc/NetworkManager/dispatcher.d/scutum')
         print(avalon.FG.G + avalon.FM.BD + 'SUCCEED' + avalon.FM.RST)
 
-    if not os.path.isfile('/usr/bin/arptables'):
+    if not os.path.isfile('/usr/bin/arptables') and not os.path.isfile('/sbin/arptables'):
         print(avalon.FM.BD + avalon.FG.R + '\nWe have detected that you don\'t have arptables installed!' + avalon.FM.RST)
         print('SCUTUM requires arptables to run')
         if avalon.ask('Install arptables?', True):
@@ -338,7 +338,7 @@ def installScutum():
                 print(str(idx) + '. ' + iface.replace(' ', ''))
                 idx += 1
         print('99. Manually Enter')
-        selection = avalon.gets('Please select (index number):')
+        selection = avalon.gets('Please select (index number): ')
 
         try:
             if selection == '99':
@@ -367,7 +367,7 @@ def installScutum():
         print('2. Network-Manager')
         print('3. Both')
 
-        selection = avalon.gets('Please select: (index number)')
+        selection = avalon.gets('Please select: (index number): ')
 
         if selection == '1':
             install4WICD()
@@ -453,12 +453,17 @@ try:
 
     if args.install:
         avalon.info('Start Installing Scutum...')
-        os.system('mv ' + os.path.abspath(__file__) + ' /usr/bin/scutum')  # os.rename throws an error when /tmp is in a separate partition
+        os.system('cp ' + os.path.abspath(__file__) + ' /usr/bin/scutum')  # os.rename throws an error when /tmp is in a separate partition
         os.system('chown root: /usr/bin/scutum')
         os.system('chmod 755 /usr/bin/scutum')
         installScutum()
         print('\n' + avalon.FM.BD, end='')
         avalon.info('Installation Complete!')
+        if avalon.ask('Do you want to remove the installer?', True):
+            avalon.info('Removing ' + os.path.abspath(__file__))
+            os.remove(os.path.abspath(__file__))
+        avalon.info('Now SCUTUM will start automatically on connection')
+        avalon.info('You can now manually call the program with command "scutum"')
         exit(0)
     elif args.uninstall:
         confirmed = avalon.ask('Removal Confirm: ', False)
@@ -488,6 +493,13 @@ try:
         os.remove(LOGPATH)
         avalon.info('LOG PURGE OK')
         exit(0)
+    elif args.status:
+        with open('/etc/scutum.conf', 'r') as scutum_config:
+            for line in scutum_config:
+                if 'enable' in line and 'true' in line:
+                    print('SCUTUM is ' + avalon.FG.G + 'ENABLED' + avalon.FM.RST)
+                elif 'enable' in line and 'false' in line:
+                    print('SCUTUM is ' + avalon.FG.R + 'DISABLED' + avalon.FM.RST)
     elif args.enable or args.disable:
         with open('/etc/scutum.conf', 'r') as conf_old:
             with open('/tmp/scutum.conf', 'w') as conf_new:
