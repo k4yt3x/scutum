@@ -5,10 +5,15 @@
 
 Current Version: 2.4.3
 
-#### Current Version Changelog:
-1. Addded option to choose whether to delete the installer file after installation
+#### Current Version Change log:
+1. Added option to choose whether to delete the installer file after installation
 2. Fixed arptables detection errors on some Linux distributions
 3. Fixed some bugs that is unnoticeable :D
+
+
+#### TODO:
+1. Use a class to control network interfaces individually
+
 
 #### Recent Changes:
 1. Added installation wizard for avalon framework when not installed. supports 3 methods of automatic installation
@@ -23,7 +28,7 @@ Current Version: 2.4.3
 ## What is SCUTUM?
 <b>Long story short, ARP firewall. It automatically adds gateways to the whitelist on connect and blocks everthing else to avoid potential threat.</b>
 
-SCUTUM is an ARP firewall that **prevents your computer from being ARP-spoofed** by other computers on LAN. Scutum controls "arptables" in your computer so it accepts ARP packets only from the gateway. This way, when people with malicious intentions cannot spoof your arp table. Scutum also prevents other people from detecting your device on LAN if scutum is used with properly configured TCP/UDP firewall.
+SCUTUM is an ARP firewall that **prevents your computer from being ARP-spoofed** by other computers on LAN. SCUTUM controls "arptables" in your computer so it accepts ARP packets only from the gateway. This way, when people with malicious intentions cannot spoof your arp table. SCUTUM also prevents other people from detecting your device on LAN if SCUTUM is used with properly configured TCP/UDP firewall.
 
 SCUTUM is also capable of handling tcp/udp/icmp traffic with iptables. You can choose to enable this feature during installation. However, a more professional firewall controller like UFW is recommended. They can handle traffic with more precision.
 
@@ -59,7 +64,7 @@ $ sudo scutum --uninstall  # Remove SCUTUM from system completely
 
 ## SCUTUM Workflow:
 #### postconnect
-1. Connect to wifi
+1. Connect to Wi-Fi
 2. Accept all ARP packets
 3. Cache gateway MAC address by establishing a socket connection with a timeout of 0
 4. Add Gateway MAC to exception

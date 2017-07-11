@@ -88,7 +88,7 @@ except ImportError:
 
 
 LOGPATH = '/var/log/scutum.log'
-VERSION = '2.4.3'
+VERSION = '2.4.4'
 
 
 # -------------------------------- Functions --------------------------------
@@ -148,7 +148,6 @@ def getIP():
 def updateIPTables():
     """
     Add router to iptables whitelist
-    It
     """
     if ipaddress.ip_address(getIP()).is_private:
         os.system('iptables -P INPUT DROP')
@@ -182,6 +181,10 @@ def updateIPTables():
 
 
 def iptablesReset():
+    """
+    Flush everything in iptables completely
+    This function will reset iptables and flush all custom settings
+    """
     os.system('iptables -F && iptables -X')
     os.system('iptables -P INPUT ACCEPT')
     os.system('iptables -P FORWARD ACCEPT')
@@ -189,7 +192,10 @@ def iptablesReset():
 
 
 def updateArpTables():
-    """Update Arptables"""
+    """
+    This function adds the gateway's mac address into
+    arptable's whitelist
+    """
     while True:  # Wait Until Gateway ARP is cached
         gatewayMac = str(getGatewayMac())
         # os.system('nslookup google.ca')  # Works as well as the following
@@ -302,16 +308,16 @@ def installScutum():
         os.system('chmod 755 /etc/NetworkManager/dispatcher.d/scutum')
         print(avalon.FG.G + avalon.FM.BD + 'SUCCEED' + avalon.FM.RST)
 
-    if not os.path.isfile('/usr/bin/arptables') and not os.path.isfile('/sbin/arptables'):
+    if not os.path.isfile('/usr/bin/arptables') and not os.path.isfile('/sbin/arptables'):  # Detect if arptables installed
         print(avalon.FM.BD + avalon.FG.R + '\nWe have detected that you don\'t have arptables installed!' + avalon.FM.RST)
         print('SCUTUM requires arptables to run')
         if avalon.ask('Install arptables?', True):
             if os.path.isfile('/usr/bin/apt'):
-                os.system('apt update && apt install arptables -y')
+                os.system('apt update && apt install arptables -y')  # install arptables with apt
             elif os.path.isfile('/usr/bin/yum'):
-                os.system('yum install arptables -y')
+                os.system('yum install arptables -y')  # install arptables with yum
             elif os.path.isfile('/usr/bin/pacman'):
-                os.system('pacman -S arptables --noconfirm')
+                os.system('pacman -S arptables --noconfirm')  # install arptables with pacman
             else:
                 avalon.error('Sorry, we can\'t find a package manager that we currently support. Aborting..')
                 print('Currently Supported: apt, yum, pacman')
