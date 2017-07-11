@@ -45,14 +45,14 @@ rm -rf SCUTUM/
 This should be easy
 SCUTUM starts <b>automatically</b> by itself after installation
 ~~~~
-$ sudo scutum # Start SCUTUM Normally
-$ sudo scutum --start # Start SCUTUM Manually for once even it it's disabled
-$ sudo scutum --enable # Enable SCUTUM (Start automatically on connect)
-$ sudo scutum --disable # Disable SCUTUM (Don't start automatically on connect)
-$ sudo scutum --reset # Reset SCUTUM (Allow ALL ARP packages temporarily)
-$ sudo scutum --purgelog # Purge SCUTUM logs
-$ sudo scutum --install # Run scutum installation wizard and install SCUTUM into system
-$ sudo scutum --uninstall # Remove SCUTUM from system completely 
+$ sudo scutum              # Start SCUTUM Normally
+$ sudo scutum --start      # Start SCUTUM Manually for once even it it's disabled
+$ sudo scutum --enable     # Enable SCUTUM (Start automatically on connect)
+$ sudo scutum --disable    # Disable SCUTUM (Don't start automatically on connect)
+$ sudo scutum --reset      # Reset SCUTUM (Allow ALL ARP packages temporarily)
+$ sudo scutum --purgelog   # Purge SCUTUM logs
+$ sudo scutum --install    # Run scutum installation wizard and install SCUTUM into system
+$ sudo scutum --uninstall  # Remove SCUTUM from system completely 
 ~~~~
 
 <br>
