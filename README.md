@@ -3,7 +3,13 @@
 
 # SCUTUM Firewall
 
-Current Version: 2.4.3
+Current Version: 2.4.4
+
+#### Progress Update
+Currently, Version 2.5.1 is being developed
+Changes are:
+1. Interfaces are now being controlled by a class
+2. Configuration file is now controlled by configparser
 
 #### Current Version Change log:
 1. Added option to choose whether to delete the installer file after installation
