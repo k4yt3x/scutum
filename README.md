@@ -3,7 +3,7 @@
 
 # SCUTUM Firewall
 
-####Current Version: 2.5.1
+#### Current Version: 2.5.1
 
 </br>
 
@@ -11,6 +11,7 @@
 1. Interfaces are now controlled by a new interface controller class
 2. SCUTUM GUI is now avaliable for testing
 
+![scutum_gui](https://user-images.githubusercontent.com/21986859/29802954-bb3475f2-8c46-11e7-8c21-efae476ac5a6.png)
 
 #### TODO:
 1. Finish up developing a stable version for SCUTUM GUI
