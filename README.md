@@ -51,6 +51,14 @@ cd ../
 rm -rf SCUTUM/
 ~~~~
 
+#### GUI Usage
+~~~~
+ENABLE: Enable SCUTUM (Start spontaneously)
+DISABLE: Disable SCUTUM (Never start spontaneously)
+DISABLE (Temporarily): Disable SCUTUM until the next time connected to a network
+~~~~
+
+
 #### Usage
 This should be easy
 SCUTUM starts <b>automatically</b> by itself after installation
