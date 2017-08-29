@@ -3,28 +3,26 @@
 
 # SCUTUM Firewall
 
-Current Version: 2.4.4
+####Current Version: 2.5.1
 
-#### Progress Update
-Currently, Version 2.5.1 is being developed
-Changes are:
-1. Interfaces are now being controlled by a class
-2. Configuration file is now controlled by configparser
+</br>
 
 #### Current Version Change log:
-1. Added option to choose whether to delete the installer file after installation
-2. Fixed arptables detection errors on some Linux distributions
-3. Fixed some bugs that is unnoticeable :D
+1. Interfaces are now controlled by a new interface controller class
+2. SCUTUM GUI is now avaliable for testing
 
 
 #### TODO:
-1. Use a class to control network interfaces individually
+1. Finish up developing a stable version for SCUTUM GUI
 
 
 #### Recent Changes:
-1. Added installation wizard for avalon framework when not installed. supports 3 methods of automatic installation
-2. Added arptables detection and installation wizard
-3. Added enable / disable / start option
+1. Added option to choose whether to delete the installer file after installation
+2. Fixed arptables detection errors on some Linux distributions
+3. Fixed some bugs that is unnoticeable :D
+4. Added installation wizard for avalon framework when not installed. supports 3 methods of automatic installation
+5. Added arptables detection and installation wizard
+6. Added enable / disable / start option
 
 <br>
 <p align="center"> 
