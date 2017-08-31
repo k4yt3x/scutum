@@ -23,7 +23,7 @@
 Name: SCUTUM Firewall
 Author: K4T
 Date of Creation: March 8,2017
-Last Modified: Aug 29,2017
+Last Modified: Aug 31,2017
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -89,7 +89,7 @@ except ImportError:
 
 
 LOGPATH = '/var/log/scutum.log'
-VERSION = '2.5.1'
+VERSION = '2.5.2'
 
 
 # -------------------------------- Classes --------------------------------
@@ -216,6 +216,52 @@ class interface_ctrl:
 
 # -------------------------------- Functions --------------------------------
 
+def check_version():
+    avalon.info(avalon.FM.RST + 'Checking SCUTUM Version...')
+    with urllib.request.urlopen('https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/scutum.py') as response:
+        html = response.read().decode().split('\n')
+        for line in html:
+            if 'VERSION = ' in line:
+                server_version = line.split(' ')[-1].replace('\'', '')
+                break
+        avalon.subLevelTimeInfo('Server version: ' + server_version)
+        if server_version > VERSION:
+            avalon.info('Here\'s a newer version of SCUTUM!')
+            if avalon.ask('Update to the newest version?'):
+                os.system('wget https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/scutum.py -O ' + os.path.abspath(__file__))
+            else:
+                avalon.warning('Ignoring update')
+        else:
+            avalon.info('SCUTUM is already on the newest version')
+    return server_version
+
+
+def check_avalon():
+    avalon.info(avalon.FM.RST + 'Checking AVALON Framework Version...')
+    avalonVersionCheck = subprocess.Popen(["pip3", "freeze"], stdout=subprocess.PIPE).communicate()[0]
+    pipOutput = avalonVersionCheck.decode().split('\n')
+    for line in pipOutput:
+        if 'avalon-framework' in line:
+            localVersion = line.split('==')[-1]
+
+    with urllib.request.urlopen('https://raw.githubusercontent.com/K4YT3X/AVALON/master/__init__.py') as response:
+        html = response.read().decode().split('\n')
+        for line in html:
+            if 'VERSION = ' in line:
+                serverVersion = line.split(' ')[-1].replace('\'', '')
+                break
+
+    if serverVersion > localVersion:
+        avalon.info('Here\'s a newer version of AVALON Framework: ' + serverVersion)
+        if avalon.ask('Update to the newest version?', True):
+            os.system('pip3 install --upgrade avalon_framework')
+        else:
+            avalon.warning('Ignoring update')
+    else:
+        avalon.subLevelTimeInfo('Current version: ' + localVersion)
+        avalon.info('AVALON Framework is already on the newest version')
+
+
 def printIcon():
     print(avalon.FM.BD + '     ___   __  _  _  ____  _  _  __  __' + avalon.FM.RST)
     print(avalon.FM.BD + '    / __) / _)( )( )(_  _)( )( )(  \/  )' + avalon.FM.RST)
@@ -240,6 +286,7 @@ def processArguments():
     control_group.add_argument("--disablegeneric", help="Disnable SCUTUM generic firewall", action="store_true", default=False)
     control_group.add_argument("--reset", help="Disable SCUTUM temporarily before the next connection", action="store_true", default=False)
     control_group.add_argument("--purgelog", help="Purge SCUTUM log file", action="store_true", default=False)
+    control_group.add_argument("--upgrade", help="Check SCUTUM & AVALON Framework Updates", action="store_true", default=False)
     inst_group = parser.add_argument_group('Installation')
     inst_group.add_argument("--install", help="Install Scutum Automatically", action="store_true", default=False)
     inst_group.add_argument("--uninstall", help="Uninstall Scutum Automatically", action="store_true", default=False)
@@ -439,9 +486,15 @@ processArguments()
 if not (args.enable or args.disable):
         printIcon()
 
+if args.upgrade:
+    check_avalon()
+    check_version()
+    exit(0)
+
 try:
     if os.getuid() != 0:  # Arptables requires root
         avalon.error('SCUTUM must be run as root!')
+        print(avalon.FG.LGR + 'It needs to control the system firewall so..' + avalon.FM.RST)
         exit(0)
     if not (args.purgelog or args.install or args.uninstall or args.enable or args.disable):
         log = open(LOGPATH, 'a+')  # Just for debugging
