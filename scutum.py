@@ -273,7 +273,7 @@ def printIcon():
 
 def processArguments():
     """
-    This function takes care of all arguments
+    This function parses all arguments
     """
     global args
     parser = argparse.ArgumentParser()
