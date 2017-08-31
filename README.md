@@ -3,13 +3,15 @@
 
 # SCUTUM Firewall
 
-#### Current Version: 2.5.1
+#### Current Version: 2.5.2
+
+**It is now recommended to upgrade scutum with --upgrade parameter** (since 2.5.2)
 
 </br>
 
 #### Current Version Change log:
-1. Interfaces are now controlled by a new interface controller class
-2. SCUTUM GUI is now avaliable for testing
+1. Added Self-Upgrading Function, now users can execute self-upgrading with $ sudo scutum --upgrade
+2. Added AVALON Framework Self-Upgrading function (included when using "--upgrade" parameter)
 
 ![scutum_gui](https://user-images.githubusercontent.com/21986859/29802954-bb3475f2-8c46-11e7-8c21-efae476ac5a6.png)
 
@@ -18,12 +20,10 @@
 
 
 #### Recent Changes:
-1. Added option to choose whether to delete the installer file after installation
-2. Fixed arptables detection errors on some Linux distributions
-3. Fixed some bugs that is unnoticeable :D
-4. Added installation wizard for avalon framework when not installed. supports 3 methods of automatic installation
-5. Added arptables detection and installation wizard
-6. Added enable / disable / start option
+1. Interfaces are now controlled by a new interface controller class
+2. SCUTUM GUI is now avaliable for testing
+3. Added option to choose whether to delete the installer file after installation
+4. Fixed arptables detection errors on some Linux distributions
 
 <br>
 <p align="center"> 
@@ -71,6 +71,7 @@ $ sudo scutum --reset      # Reset SCUTUM (Allow ALL ARP packages temporarily)
 $ sudo scutum --purgelog   # Purge SCUTUM logs
 $ sudo scutum --install    # Run scutum installation wizard and install SCUTUM into system
 $ sudo scutum --uninstall  # Remove SCUTUM from system completely 
+$ sudo scutum --upgrade    # Upgrade SCUTUM and AVALON Framework
 ~~~~
 
 <br>
