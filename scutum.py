@@ -23,12 +23,12 @@
 Name: SCUTUM Firewall
 Author: K4T
 Date of Creation: March 8,2017
-Last Modified: Aug 31,2017
+Last Modified: Sep 8,2017
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
 
-(C) 2017 K4YT3X
+(C) 2016 - 2017 K4YT3X
 
 Description: SCUTUM is a firewall designed for personal computers that mainly
 focuses on ARP defensing
@@ -89,7 +89,7 @@ except ImportError:
 
 
 LOGPATH = '/var/log/scutum.log'
-VERSION = '2.5.2'
+VERSION = '2.5.3'
 
 
 # -------------------------------- Classes --------------------------------
@@ -286,10 +286,10 @@ def processArguments():
     control_group.add_argument("--disablegeneric", help="Disnable SCUTUM generic firewall", action="store_true", default=False)
     control_group.add_argument("--reset", help="Disable SCUTUM temporarily before the next connection", action="store_true", default=False)
     control_group.add_argument("--purgelog", help="Purge SCUTUM log file", action="store_true", default=False)
-    control_group.add_argument("--upgrade", help="Check SCUTUM & AVALON Framework Updates", action="store_true", default=False)
     inst_group = parser.add_argument_group('Installation')
     inst_group.add_argument("--install", help="Install Scutum Automatically", action="store_true", default=False)
     inst_group.add_argument("--uninstall", help="Uninstall Scutum Automatically", action="store_true", default=False)
+    inst_group.add_argument("--upgrade", help="Check SCUTUM & AVALON Framework Updates", action="store_true", default=False)
     args = parser.parse_args()
 
 
@@ -304,7 +304,7 @@ def removeScutum():
         os.remove('/etc/NetworkManager/dispatcher.d/scutum')
     except FileNotFoundError:
         pass
-    avalon.info('Scutum sucessfully removed!')
+    avalon.info('SCUTUM successfully removed!')
     exit(0)
 
 
@@ -535,7 +535,7 @@ try:
                 exit(0)
 
     if args.install:
-        avalon.info('Start Installing Scutum...')
+        avalon.info('Start Installing SCUTUM...')
         os.system('cp ' + os.path.abspath(__file__) + ' /usr/bin/scutum')  # os.rename throws an error when /tmp is in a separate partition
         os.system('chown root: /usr/bin/scutum')
         os.system('chmod 755 /usr/bin/scutum')
