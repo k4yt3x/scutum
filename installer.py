@@ -170,6 +170,7 @@ class Installer():
         config = configparser.ConfigParser()
         config["Interfaces"] = {}
         config["Iptables"] = {}
+        config["networkControllers"] = {}
 
         if os.path.isdir(self.INSTALL_DIR):
             shutil.rmtree(self.INSTALL_DIR)  # remove old scutum files
