@@ -95,7 +95,7 @@ class Installer():
         os.system('chmod 755 /etc/wicd/scripts/postdisconnect/scutum_disconnect')
         print(avalon.FG.G + avalon.FM.BD + 'SUCCEED' + avalon.FM.RST)
 
-    def installNMScripts(self):
+    def installNMScripts(self, interfaces):
         """
         Write scutum scripts for Network Manager
         """
@@ -115,7 +115,7 @@ class Installer():
             nmScript.write("IF=$1\n")
             nmScript.write("STATUS=$2\n")
             nmScript.write(" \n")
-            for iface in ifacesSelected:
+            for iface in interfaces:
                 nmScript.write("if [ \"$IF\" == \"" + iface + "\" ]\n")
                 nmScript.write("then\n")
                 nmScript.write("    case \"$2\" in\n")
@@ -266,12 +266,12 @@ class Installer():
                 config["networkControllers"]["controllers"] = "wicd"
                 break
             elif selection == '2':
-                self.installNMScripts()
+                self.installNMScripts(ifacesSelected)
                 config["networkControllers"]["controllers"] = "NetworkManager"
                 break
             elif selection == '3':
                 self.installWicdScripts()
-                self.installNMScripts()
+                self.installNMScripts(ifacesSelected)
                 config["networkControllers"]["controllers"] = "wicd,NetworkManager"
                 break
             else:

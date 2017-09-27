@@ -210,7 +210,7 @@ try:
                 installer.installWicdScripts()
         elif args.disable:
             log.write(str(datetime.datetime.now()) + " SCUTUM DISABLED")
-            installer.removeNMScripts()
+            installer.removeNMScripts(config["networkControllers"]["controllers"].split(","))
             installer.removeWicdScripts()
     else:
         ifaceobjs = []  # a list to store internet controller objects
