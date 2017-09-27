@@ -151,7 +151,7 @@ try:
         avalon.error('SCUTUM must be run as root!')
         print(avalon.FG.LGR + 'It needs to control the system firewall so..' + avalon.FM.RST)
         exit(0)
-    if not (args.purgelog or args.install or args.uninstall or args.enable or args.disable):
+    if not (args.purgelog or args.install or args.uninstall):
         log = open(LOGPATH, 'a+')  # Just for debugging
         log.write(str(datetime.datetime.now()) + ' ---- START ----\n')
         log.write(str(datetime.datetime.now()) + '  UID: ' + str(os.getuid()) + '\n')
@@ -203,11 +203,13 @@ try:
         exit(0)
     elif args.enable or args.disable:
         if args.enable:
+            log.write(str(datetime.datetime.now()) + " SCUTUM ENABLED")
             if "wicd" in networkControllers.split(","):
                 install.installNMScripts()
             if "NetworkManager" in networkControllers.split(","):
                 install.installWicdScripts()
         elif args.disable:
+            log.write(str(datetime.datetime.now()) + " SCUTUM DISABLED")
             install.removeNMScripts()
             install.removeWicdScripts()
     else:
