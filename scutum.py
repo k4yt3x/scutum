@@ -208,6 +208,19 @@ try:
                 installer.installNMScripts(config["networkControllers"]["controllers"].split(","))
             if "NetworkManager" in networkControllers.split(","):
                 installer.installWicdScripts()
+            ifaceobjs = []  # a list to store internet controller objects
+            os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
+
+            for interface in interfaces:
+                interface = Adapter(interface, log)
+                ifaceobjs.append(interface)
+
+            for interface in ifaceobjs:
+                interface.updateArpTables()
+                if iptablesEnabled:
+                    interface.iptablesReset()
+                    interface.updateIPTables()
+            avalon.info('OK')
         elif args.disable:
             log.write(str(datetime.datetime.now()) + " SCUTUM DISABLED")
             installer.removeNMScripts()
