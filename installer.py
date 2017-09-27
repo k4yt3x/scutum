@@ -65,7 +65,7 @@ class Installer():
             avalon.subLevelTimeInfo('Current version: ' + localVersion)
             avalon.info('AVALON Framework is already on the newest version')
 
-    def installWicdScripts():
+    def installWicdScripts(self):
         """
         Write scutum scripts for WICD
         """
@@ -95,7 +95,7 @@ class Installer():
         os.system('chmod 755 /etc/wicd/scripts/postdisconnect/scutum_disconnect')
         print(avalon.FG.G + avalon.FM.BD + 'SUCCEED' + avalon.FM.RST)
 
-    def installNMScripts():
+    def installNMScripts(self):
         """
         Write scutum scripts for Network Manager
         """
