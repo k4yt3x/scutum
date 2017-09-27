@@ -5,10 +5,10 @@ import sys
 
 try:
    if sys.argv[1] == "start":
-      os.system("scutum")
+      os.system("scutum --enable")
       exit(0)
    elif sys.argv[1] == "stop":
-      os.system("scutum --reset")
+      os.system("scutum --disable")
       exit(0)
    elif sys.argv[1] == "restart":
       os.system("scutum --reset")
