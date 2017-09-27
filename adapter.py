@@ -11,9 +11,9 @@ import time
 
 class Adapter:
 
-    def __init__(self, interface, LOGPATH):
+    def __init__(self, interface, log):
         self.interface = interface
-        self.LOGPATH = LOGPATH
+        self.log = log
 
     def getGateway(self):
         """Get Linux Default Gateway"""
@@ -123,10 +123,8 @@ class Adapter:
             if gatewayMac != '00:00:00:00:00:00' and len(gatewayMac) == 17:
                 break
             time.sleep(0.5)  # Be nice to CPU
-        with open(self.LOGPATH, 'a+') as log:
-            log.write(str(datetime.datetime.now()) + '  MAC: ' + gatewayMac + '\n')
-            log.write(str(datetime.datetime.now()) + '  IP: ' + str(Adapter.getIP(self)) + '\n')
-            log.close()
+        self.log.write(str(datetime.datetime.now()) + '  MAC: ' + gatewayMac + '\n')
+        self.log.write(str(datetime.datetime.now()) + '  IP: ' + str(Adapter.getIP(self)) + '\n')
         os.system('arptables --flush')
         os.system('arptables -P INPUT DROP')
         os.system('arptables -A INPUT --source-mac ' + gatewayMac + ' -j ACCEPT')

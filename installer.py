@@ -5,13 +5,15 @@ import os
 import shutil
 import subprocess
 import urllib.response
+import configparser
 
 
 class Installer():
 
-    def __init__(self):
+    def __init__(self, CONFPATH):
         self.SCUTUM_BIN_FILE = "/usr/bin/scutum"
         self.INSTALL_DIR = "/usr/share/scutum"
+        self.CONFPATH = CONFPATH
 
     def install_service(self):
         shutil.copyfile("/usr/share/scutum/scutum", "/etc/init.d/scutum")
@@ -63,7 +65,7 @@ class Installer():
             avalon.subLevelTimeInfo('Current version: ' + localVersion)
             avalon.info('AVALON Framework is already on the newest version')
 
-    def install4WICD():
+    def installWicdScripts():
         """
         Write scutum scripts for WICD
         """
@@ -93,7 +95,7 @@ class Installer():
         os.system('chmod 755 /etc/wicd/scripts/postdisconnect/scutum_disconnect')
         print(avalon.FG.G + avalon.FM.BD + 'SUCCEED' + avalon.FM.RST)
 
-    def install4NM():
+    def installNMScripts():
         """
         Write scutum scripts for Network Manager
         """
@@ -133,11 +135,41 @@ class Installer():
         os.system('chmod 755 /etc/NetworkManager/dispatcher.d/scutum')
         print(avalon.FG.G + avalon.FM.BD + 'SUCCEED' + avalon.FM.RST)
 
+    def removeWicdScripts(self):
+        try:
+            os.remove('/etc/wicd/scripts/postconnect/scutum_connect')
+            os.remove('/etc/wicd/scripts/postdisconnect/scutum_disconnect')
+        except FileNotFoundError:
+            pass
+
+    def removeNMScripts(self):
+        try:
+            os.remove('/etc/NetworkManager/dispatcher.d/scutum')
+        except FileNotFoundError:
+            pass
+
+    def removeScutum(self):
+        os.remove('/usr/bin/scutum')
+
+        self.removeWicdScripts()
+        self.removeNMScripts()
+
+        try:
+            shutil.rmtree("/usr/share/scutum")
+        except FileNotFoundError:
+            pass
+        avalon.info('SCUTUM successfully removed!')
+        exit(0)
+
     def install(self):
         """
         This is the main function for installer
         """
         global ifacesSelected
+
+        config = configparser.ConfigParser()
+        config["Interfaces"] = {}
+        config["Iptables"] = {}
 
         if os.path.isdir(self.INSTALL_DIR):
             shutil.rmtree(self.INSTALL_DIR)  # remove old scutum files
@@ -218,6 +250,8 @@ class Installer():
                 avalon.error('Invalid Input!')
                 avalon.error('Please enter the index number!')
 
+        config["Interfaces"]["interfaces"] = ",".join(ifacesSelected)
+
         while True:
             print(avalon.FM.BD + '\nWhich network controller do you want to install for?' + avalon.FM.RST)
             print('1. WICD')
@@ -227,14 +261,17 @@ class Installer():
             selection = avalon.gets('Please select: (index number): ')
 
             if selection == '1':
-                Installer.install4WICD()
+                Installer.installWicdScripts()
+                config["networkControllers"]["controllers"] = "wicd"
                 break
             elif selection == '2':
-                Installer.install4NM()
+                Installer.installNMScripts()
+                config["networkControllers"]["controllers"] = "NetworkManager"
                 break
             elif selection == '3':
-                Installer.install4WICD()
-                Installer.install4NM()
+                Installer.installWicdScripts()
+                Installer.installNMScripts()
+                config["networkControllers"]["controllers"] = "wicd,NetworkManager"
                 break
             else:
                 avalon.error('Invalid Input!')
@@ -245,16 +282,8 @@ class Installer():
         print('Enable this only if you don\'t have a firewall already')
         avalon.warning('This feature will erase all existing iptables settings!')
         if avalon.ask('Enable?', False):
-            with open('/etc/scutum.conf', 'w') as scutum_config:  # A very simple config system
-                scutum_config.write('[SCUTUM CONFIG]\n')
-                scutum_config.write('firewall=true\n')
-                scutum_config.write('interfaces=' + ','.join(ifacesSelected) + '\n')
-                scutum_config.write('enabled=true\n')
-                scutum_config.close()
+            config["Iptables"]["enabled"] = "true"
         else:
-            with open('/etc/scutum.conf', 'w') as scutum_config:
-                scutum_config.write('[SCUTUM CONFIG]\n')
-                scutum_config.write('firewall=false\n')
-                scutum_config.write('interfaces=' + ','.join(ifacesSelected) + '\n')
-                scutum_config.write('enabled=true\n')
-                scutum_config.close()
+            config["Iptables"]["enabled"] = "false"
+        with open(self.CONFPATH, 'w') as configfile:
+            config.write(configfile)  # Writes configurations

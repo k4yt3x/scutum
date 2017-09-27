@@ -54,6 +54,7 @@ import argparse
 import datetime
 import os
 import urllib.request
+import configparser
 
 try:
     import avalon_framework as avalon
@@ -95,6 +96,7 @@ except ImportError:
 
 
 LOGPATH = '/var/log/scutum.log'
+CONFPATH = "/etc/scutum.conf"
 VERSION = '2.6.0 alpha'
 
 
@@ -132,25 +134,10 @@ def processArguments():
     args = parser.parse_args()
 
 
-def removeScutum():
-    os.remove('/usr/bin/scutum')
-    try:
-        os.remove('/etc/wicd/scripts/postconnect/scutum_connect')
-        os.remove('/etc/wicd/scripts/postdisconnect/scutum_disconnect')
-    except FileNotFoundError:
-        pass
-    try:
-        os.remove('/etc/NetworkManager/dispatcher.d/scutum')
-    except FileNotFoundError:
-        pass
-    avalon.info('SCUTUM successfully removed!')
-    exit(0)
-
-
 # -------------------------------- Execute --------------------------------
 
 processArguments()
-installer = Installer()
+installer = Installer(CONFPATH)
 if not (args.enable or args.disable):
         printIcon()
 
@@ -168,39 +155,24 @@ try:
         log = open(LOGPATH, 'a+')  # Just for debugging
         log.write(str(datetime.datetime.now()) + ' ---- START ----\n')
         log.write(str(datetime.datetime.now()) + '  UID: ' + str(os.getuid()) + '\n')
-        if not os.path.isfile('/etc/scutum.conf'):
+        if not os.path.isfile(CONFPATH):
             avalon.error('SCUTUM Config file not found! Please re-install SCUTUM!')
             avalon.warning('Please run "scutum --install" before using it for the first time')
             exit()
 
-        configIntegrity = []
-        required = ['firewall', 'enabled', 'interfaces']
+        config = configparser.ConfigParser()
+        config.read(CONFPATH)
+        config.sections()
 
-        with open('/etc/scutum.conf', 'r') as scutum_config:
-            for line in scutum_config:
-                if 'firewall' in line and 'true' in line:
-                    configIntegrity.append('firewall')
-                    iptablesEnabled = True
-                elif 'firewall' in line and 'false' in line:
-                    configIntegrity.append('firewall')
-                    iptablesEnabled = False
+        interfaces = config["Interfaces"]["interfaces"].split(",")
+        if config["Iptables"]["enabled"] == "true":
+            iptablesEnabled = True
+        elif config["Iptables"]["enabled"] == "false":
+            iptablesEnabled = False
+        else:
+            raise KeyError
 
-                if 'enabled' in line and 'true' in line:
-                    configIntegrity.append('enabled')
-                    enabled = True
-                elif 'enabled' in line and 'false' in line:
-                    configIntegrity.append('enabled')
-                    enabled = False
-
-                if 'interfaces' in line:
-                    configIntegrity.append('interfaces')
-                    interfaces = line.replace('\n', '').split('=')[1].split(',')
-
-        for item in required:
-            if item not in configIntegrity:
-                avalon.error('The program configuration file is broken for some reason')
-                avalon.error('You should reinstall SCUTUM to repair the configuration file')
-                exit(0)
+        networkControllers = config["networkControllers"]["controllers"]
 
     if args.install:
         avalon.info('Start Installing SCUTUM...')
@@ -214,9 +186,8 @@ try:
         avalon.info('You can now manually call the program with command "scutum"')
         exit(0)
     elif args.uninstall:
-        confirmed = avalon.ask('Removal Confirm: ', False)
-        if confirmed:
-            removeScutum()
+        if avalon.ask('Removal Confirm: ', False):
+            install.removeScutum()
         else:
             avalon.warning('Removal Canceled')
             exit(0)
@@ -230,55 +201,35 @@ try:
         os.remove(LOGPATH)
         avalon.info('LOG PURGE OK')
         exit(0)
-    elif args.status:
-        with open('/etc/scutum.conf', 'r') as scutum_config:
-            for line in scutum_config:
-                if 'enable' in line and 'true' in line:
-                    print('SCUTUM is ' + avalon.FG.G + 'ENABLED' + avalon.FM.RST)
-                elif 'enable' in line and 'false' in line:
-                    print('SCUTUM is ' + avalon.FG.R + 'DISABLED' + avalon.FM.RST)
     elif args.enable or args.disable:
-        with open('/etc/scutum.conf', 'r') as conf_old:
-            with open('/tmp/scutum.conf', 'w') as conf_new:
-                for line in conf_old:
-                    if 'enabled' in line:
-                        pass
-                    else:
-                        conf_new.write(line)
-                if args.enable:
-                    conf_new.write('enabled=true\n')
-                    os.system('scutum --start')
-                    avalon.info('SCUTUM Enabled')
-                elif args.disable:
-                    conf_new.write('enabled=false\n')
-                    os.system('scutum --reset')
-                    avalon.info('SCUTUM Disabled')
-                conf_new.close()
-            conf_old.close()
-        os.system('mv /tmp/scutum.conf /etc/scutum.conf')  # os.rename throws an error when /tmp is in a separate partition
-        exit(0)
+        if args.enable:
+            if "wicd" in networkControllers.split(","):
+                install.installNMScripts()
+            if "NetworkManager" in networkControllers.split(","):
+                install.installWicdScripts()
+        elif args.disable:
+            install.removeNMScripts()
+            install.removeWicdScripts()
     else:
-        if enabled or args.start:
-            ifaceobjs = []  # a list to store internet controller objects
-            os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
+        ifaceobjs = []  # a list to store internet controller objects
+        os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
 
-            for interface in interfaces:
-                interface = Adapter(interface, LOGPATH)
-                ifaceobjs.append(interface)
+        for interface in interfaces:
+            interface = Adapter(interface, log)
+            ifaceobjs.append(interface)
 
-            for interface in ifaceobjs:
-                interface.updateArpTables()
-                if iptablesEnabled:
-                    interface.iptablesReset()
-                    interface.updateIPTables()
-            avalon.info('OK')
-        else:
-            log.write('SCUTUM Disabled, taking no actions')
-            avalon.warning('SCUTUM Disabled, taking no actions')
+        for interface in ifaceobjs:
+            interface.updateArpTables()
+            if iptablesEnabled:
+                interface.iptablesReset()
+                interface.updateIPTables()
+        avalon.info('OK')
 except KeyboardInterrupt:
     print('\n')
     avalon.warning('^C Pressed! Exiting...')
-    exit(0)
+except KeyError:
+    avalon.error('The program configuration file is broken for some reason')
+    avalon.error('You should reinstall SCUTUM to repair the configuration file')
 except Exception as er:
     avalon.error(str(er))
     if not (args.purgelog or args.install or args.uninstall or args.enable or args.disable or os.getuid() != 0):
