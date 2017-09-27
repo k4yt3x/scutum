@@ -205,13 +205,13 @@ try:
         if args.enable:
             log.write(str(datetime.datetime.now()) + " SCUTUM ENABLED")
             if "wicd" in networkControllers.split(","):
-                install.installNMScripts()
+                installer.installNMScripts()
             if "NetworkManager" in networkControllers.split(","):
-                install.installWicdScripts()
+                installer.installWicdScripts()
         elif args.disable:
             log.write(str(datetime.datetime.now()) + " SCUTUM DISABLED")
-            install.removeNMScripts()
-            install.removeWicdScripts()
+            installer.removeNMScripts()
+            installer.removeWicdScripts()
     else:
         ifaceobjs = []  # a list to store internet controller objects
         os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
