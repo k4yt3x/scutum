@@ -3,7 +3,11 @@
 
 # SCUTUM Firewall
 
-#### Current Version: 2.6.0
+#### Current Version: 2.6.0 alpha
+
+### A LOT OF BUGS! INSTALL WITH CAUTION!
+**Highly NOT recommended to download the current version!  
+This version is incomplete and unstable!**
 
 ~~**It is now recommended to upgrade scutum with --upgrade parameter** (since 2.5.2)~~  
 Never mind. Please run the installation below again manually.
@@ -11,8 +15,9 @@ Never mind. Please run the installation below again manually.
 </br>
 
 #### Current Version Change log:
-1. Added Self-Upgrading Function, now users can execute self-upgrading with $ sudo scutum --upgrade
-2. Added AVALON Framework Self-Upgrading function (included when using "--upgrade" parameter)
+1. Created different class for adapter controller
+2. Created different class for Installer
+3. Registers SCUTUM as a systemd system service
 
 ![scutum_gui](https://user-images.githubusercontent.com/21986859/29802954-bb3475f2-8c46-11e7-8c21-efae476ac5a6.png)
 
@@ -21,10 +26,12 @@ Never mind. Please run the installation below again manually.
 
 
 #### Recent Changes:
-1. Interfaces are now controlled by a new interface controller class
-2. SCUTUM GUI is now avaliable for testing
-3. Added option to choose whether to delete the installer file after installation
-4. Fixed arptables detection errors on some Linux distributions
+1. Added Self-Upgrading Function, now users can execute self-upgrading with $ sudo scutum --upgrade
+2. Added AVALON Framework Self-Upgrading function (included when using "--upgrade" parameter)
+3. Interfaces are now controlled by a new interface controller class
+4. SCUTUM GUI is now avaliable for testing
+5. Added option to choose whether to delete the installer file after installation
+6. Fixed arptables detection errors on some Linux distributions
 
 <br>
 <p align="center"> 

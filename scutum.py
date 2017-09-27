@@ -95,7 +95,7 @@ except ImportError:
 
 
 LOGPATH = '/var/log/scutum.log'
-VERSION = '2.6.0'
+VERSION = '2.6.0 alpha'
 
 
 # -------------------------------- Functions --------------------------------
@@ -117,7 +117,7 @@ def processArguments():
     global args
     parser = argparse.ArgumentParser()
     control_group = parser.add_argument_group('Controls')
-    control_group.add_argument("--start", help="Start SCUTUM once even if disabled", action="store_true", default=False)
+    control_group.add_argument("--start", help="Enable SCUTUM once before shutdown", action="store_true", default=False)
     control_group.add_argument("--enable", help="Enable SCUTUM", action="store_true", default=False)
     control_group.add_argument("--disable", help="Disable SCUTUM", action="store_true", default=False)
     control_group.add_argument("--status", help="Show SCUTUM current status", action="store_true", default=False)
