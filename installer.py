@@ -262,16 +262,16 @@ class Installer():
             selection = avalon.gets('Please select: (index number): ')
 
             if selection == '1':
-                Installer.installWicdScripts()
+                self.installWicdScripts()
                 config["networkControllers"]["controllers"] = "wicd"
                 break
             elif selection == '2':
-                Installer.installNMScripts()
+                self.installNMScripts()
                 config["networkControllers"]["controllers"] = "NetworkManager"
                 break
             elif selection == '3':
-                Installer.installWicdScripts()
-                Installer.installNMScripts()
+                self.installWicdScripts()
+                self.installNMScripts()
                 config["networkControllers"]["controllers"] = "wicd,NetworkManager"
                 break
             else:
