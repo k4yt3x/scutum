@@ -212,6 +212,9 @@ try:
             log.write(str(datetime.datetime.now()) + " SCUTUM DISABLED")
             installer.removeNMScripts()
             installer.removeWicdScripts()
+            os.system('arptables -P INPUT ACCEPT')
+            os.system('arptables --flush')
+            avalon.info('RST OK')
     else:
         ifaceobjs = []  # a list to store internet controller objects
         os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
