@@ -1,5 +1,14 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Name: SCUTUM Adapter Class
+Author: K4YT3X
+Date Created: Sep 26, 2017
+Last Modified: Sep 27, 2017
+
+Description: This class controls all system configuring activities
+ex. set arptables, set iptables, etc.
+"""
 import datetime
 import ipaddress
 import os

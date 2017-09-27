@@ -3,35 +3,49 @@
 
 # SCUTUM Firewall
 
-#### Current Version: 2.6.0 alpha
+#### Current Version: 2.6.0 beta 1
 
-### A LOT OF BUGS! INSTALL WITH CAUTION!
-**Highly NOT recommended to download the current version!  
-This version is incomplete and unstable!**
+### This is an UNSTABLE version
 
 ~~**It is now recommended to upgrade scutum with --upgrade parameter** (since 2.5.2)~~  
 Never mind. Please run the installation below again manually.
+
+**Currently only working for Debian Distros**
+
+<br>
+
+## Quick Install
+I made it really easy :D  
+~~~~
+$ sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quickinstall.sh)"
+~~~~
+BTW the installation method right now is pretty dumb. It will be changed soon. However it doen't affect the installation besides a little slow.
 
 </br>
 
 #### Current Version Change log:
 1. Created different class for adapter controller
-2. Created different class for Installer
-3. Registers SCUTUM as a systemd system service
+1. Created different class for Installer
+1. Registers SCUTUM as a systemd system service
+1. Changed the way configurations are being stored (configparser)
 
 ![scutum_gui](https://user-images.githubusercontent.com/21986859/29802954-bb3475f2-8c46-11e7-8c21-efae476ac5a6.png)
 
 #### TODO:
-1. Finish up developing a stable version for SCUTUM GUI
+1. Change SCUTUM GUI to adapt systemd
+1. Create .deb package
+1. Add dynamic inspection?
+1. Fix loggin format error
+1. Fix options for iptables firewall
 
 
 #### Recent Changes:
 1. Added Self-Upgrading Function, now users can execute self-upgrading with $ sudo scutum --upgrade
-2. Added AVALON Framework Self-Upgrading function (included when using "--upgrade" parameter)
-3. Interfaces are now controlled by a new interface controller class
-4. SCUTUM GUI is now avaliable for testing
-5. Added option to choose whether to delete the installer file after installation
-6. Fixed arptables detection errors on some Linux distributions
+1. Added AVALON Framework Self-Upgrading function (included when using "--upgrade" parameter)
+1. Interfaces are now controlled by a new interface controller class
+1. SCUTUM GUI is now avaliable for testing
+1. Added option to choose whether to delete the installer file after installation
+1. Fixed arptables detection errors on some Linux distributions
 
 <br>
 <p align="center"> 
@@ -51,15 +65,14 @@ SCUTUM is also capable of handling tcp/udp/icmp traffic with iptables. You can c
 You should run a installation before running it for the first time for setting up configuration files. 
 <b>I am not sure if portable version is necessary. If you think this should be changed, raise an issue and I will change it.</b>
 #### Installation
+Quick install above is recommended
 ~~~~
 git clone https://github.com/K4YT3X/SCUTUM.git
 cd SCUTUM/
-sudo python3 scutum.py --install  # scutum.py deletes itself after installation
-cd ../
-rm -rf SCUTUM/
+sudo python3 scutum.py --install
 ~~~~
 
-#### GUI Usage
+#### GUI Usage (Currently not working)
 ~~~~
 ENABLE: Enable SCUTUM (Start spontaneously)
 DISABLE: Disable SCUTUM (Never start spontaneously)
@@ -71,15 +84,19 @@ DISABLE (Temporarily): Disable SCUTUM until the next time connected to a network
 This should be easy
 SCUTUM starts <b>automatically</b> by itself after installation
 ~~~~
-$ sudo scutum              # Start SCUTUM Normally
-$ sudo scutum --start      # Start SCUTUM Manually for once even it it's disabled
-$ sudo scutum --enable     # Enable SCUTUM (Start automatically on connect)
-$ sudo scutum --disable    # Disable SCUTUM (Don't start automatically on connect)
-$ sudo scutum --reset      # Reset SCUTUM (Allow ALL ARP packages temporarily)
-$ sudo scutum --purgelog   # Purge SCUTUM logs
-$ sudo scutum --install    # Run scutum installation wizard and install SCUTUM into system
-$ sudo scutum --uninstall  # Remove SCUTUM from system completely 
-$ sudo scutum --upgrade    # Upgrade SCUTUM and AVALON Framework
+$ sudo service scutum start     # Start scutum service
+$ sudo service scutum stop      # Stop scutum service
+$ sudo systemctl enable scutum  # Start SCUTUM with system
+$ sudo systemctl disable scutum # Don't start SCUTUM with system
+$ sudo scutum                   # Start SCUTUM Normally
+$ sudo scutum --start           # Start SCUTUM Manually for once even it it's disabled
+$ sudo scutum --enable          # Enable SCUTUM (Start automatically on connect)
+$ sudo scutum --disable         # Disable SCUTUM (Don't start automatically on connect)
+$ sudo scutum --reset           # Reset SCUTUM (Allow ALL ARP packages temporarily)
+$ sudo scutum --purgelog        # Purge SCUTUM logs
+$ sudo scutum --install         # Run scutum installation wizard and install SCUTUM into system
+$ sudo scutum --uninstall       # Remove SCUTUM from system completely 
+$ sudo scutum --upgrade         # Upgrade SCUTUM and AVALON Framework
 ~~~~
 
 <br>

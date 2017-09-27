@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
     ╬##################╬
@@ -23,7 +23,7 @@
 Name: SCUTUM Firewall
 Author: K4T
 Date of Creation: March 8,2017
-Last Modified: Sep 26,2017
+Last Modified: Sep 27,2017
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -41,10 +41,12 @@ TODO:
  [x] Create different class for adapter controller
  [x] Create different class for Installer
  [x] Register SCUTUM as a systemd system service
- [ ] Change the way configurations are being stored (configparser)
+ [x] Change the way configurations are being stored (configparser)
  [ ] Change SCUTUM GUI to adapt systemd
  [ ] Create .deb package
  [ ] Add dynamic inspection?
+ [ ] Fix loggin format error
+ [ ] Fix options for iptables firewall
 
 """
 from __future__ import print_function
@@ -97,7 +99,7 @@ except ImportError:
 
 LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
-VERSION = '2.6.0 alpha'
+VERSION = '2.6.0 beta 1'
 
 
 # -------------------------------- Functions --------------------------------
@@ -109,7 +111,8 @@ def printIcon():
     print(avalon.FM.BD + '    \__ \( (_  )()(   )(   )()(  )    (' + avalon.FM.RST)
     print(avalon.FM.BD + '    (___/ \__) \__/  (__)  \__/ (_/\/\_)' + avalon.FM.RST)
     print('\n               ARP Firewall')
-    print(avalon.FM.BD + '\n              Version ' + VERSION + '\n' + avalon.FM.RST)
+    spaces = ((32 - len("Version " + VERSION)) // 2) * " "
+    print(avalon.FM.BD + "\n" + spaces + '    Version ' + VERSION + '\n' + avalon.FM.RST)
 
 
 def processArguments():
@@ -123,8 +126,8 @@ def processArguments():
     control_group.add_argument("--enable", help="Enable SCUTUM", action="store_true", default=False)
     control_group.add_argument("--disable", help="Disable SCUTUM", action="store_true", default=False)
     control_group.add_argument("--status", help="Show SCUTUM current status", action="store_true", default=False)
-    control_group.add_argument("--enablegeneric", help="Enable SCUTUM generic firewall", action="store_true", default=False)
-    control_group.add_argument("--disablegeneric", help="Disnable SCUTUM generic firewall", action="store_true", default=False)
+    # control_group.add_argument("--enablegeneric", help="Enable SCUTUM generic firewall", action="store_true", default=False)
+    # control_group.add_argument("--disablegeneric", help="Disnable SCUTUM generic firewall", action="store_true", default=False)
     control_group.add_argument("--reset", help="Disable SCUTUM temporarily before the next connection", action="store_true", default=False)
     control_group.add_argument("--purgelog", help="Purge SCUTUM log file", action="store_true", default=False)
     inst_group = parser.add_argument_group('Installation')
@@ -179,15 +182,13 @@ try:
         installer.install()
         print('\n' + avalon.FM.BD, end='')
         avalon.info('Installation Complete!')
-        if avalon.ask('Do you want to remove the installer?', True):
-            avalon.info('Removing ' + os.path.abspath(__file__))
-            os.remove(os.path.abspath(__file__))
-        avalon.info('Now SCUTUM will start automatically on connection')
-        avalon.info('You can now manually call the program with command "scutum"')
+        avalon.info('SCUTUM service is now enabled on system startup')
+        avalon.info('You can now control it with systemd')
+        avalon.info("You can also control it manually with \"scutum\" command")
         exit(0)
     elif args.uninstall:
         if avalon.ask('Removal Confirm: ', False):
-            install.removeScutum()
+            installer.removeScutum()
         else:
             avalon.warning('Removal Canceled')
             exit(0)
@@ -250,10 +251,10 @@ except KeyError:
     avalon.error('You should reinstall SCUTUM to repair the configuration file')
 except Exception as er:
     avalon.error(str(er))
-    if not (args.purgelog or args.install or args.uninstall or args.enable or args.disable or os.getuid() != 0):
+    if not (args.purgelog or args.install or args.uninstall or os.getuid() != 0):
         log.write(str(datetime.datetime.now()) + ' -!-! ERROR !-!-\n')
         log.write(str(er) + '\n')
 finally:
-    if not (args.purgelog or args.install or args.uninstall or args.enable or args.disable or os.getuid() != 0):
+    if not (args.purgelog or args.install or args.uninstall or os.getuid() != 0):
         log.write(str(datetime.datetime.now()) + ' ---- FINISH ----\n\n')
         log.close()

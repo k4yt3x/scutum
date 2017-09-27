@@ -1,5 +1,14 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Name: SCUTUM Installer Class
+Author: K4YT3X
+Date Created: Sep 26, 2017
+Last Modified: Sep 27, 2017
+
+Description: Handles the installation, removal, configuring and
+upgrading for SCUTUM
+"""
 import avalon_framework as avalon
 import os
 import shutil
