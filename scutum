@@ -1,4 +1,13 @@
 #!/usr/bin/env python3
+### BEGIN INIT INFO
+# Provides:          scutum
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# X-Interactive:     true
+# Short-Description: SCUTUM Firewall
+# Description:       Start SCUTUM firewall
+#  This script will start SCUTUM Firewall.
+### END INIT INFO
 
 import os
 import sys

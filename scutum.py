@@ -43,10 +43,10 @@ TODO:
  [x] Register SCUTUM as a systemd system service
  [x] Change the way configurations are being stored (configparser)
  [ ] Change SCUTUM GUI to adapt systemd
- [ ] Create .deb package
  [ ] Add dynamic inspection?
  [ ] Fix loggin format error
  [ ] Fix options for iptables firewall
+ [ ] Create .deb package
 
 """
 from __future__ import print_function
