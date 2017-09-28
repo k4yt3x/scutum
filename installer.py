@@ -4,22 +4,23 @@
 Name: SCUTUM Installer Class
 Author: K4YT3X
 Date Created: Sep 26, 2017
-Last Modified: Sep 27, 2017
+Last Modified: Sep 28, 2017
 
 Description: Handles the installation, removal, configuring and
 upgrading for SCUTUM
 """
+from iptables import Ufw
 import avalon_framework as avalon
+import configparser
 import os
 import shutil
 import subprocess
 import urllib.response
-import configparser
 
 
 class Installer():
 
-    def __init__(self, CONFPATH):
+    def __init__(self, CONFPATH="/etc/scutum.conf"):
         self.SCUTUM_BIN_FILE = "/usr/bin/scutum"
         self.INSTALL_DIR = "/usr/share/scutum"
         self.CONFPATH = CONFPATH
@@ -73,6 +74,25 @@ class Installer():
         else:
             avalon.subLevelTimeInfo('Current version: ' + localVersion)
             avalon.info('AVALON Framework is already on the newest version')
+
+    def sysInstallPackage(package):
+        if avalon.ask('Install ' + package + '?', True):
+            if os.path.isfile('/usr/bin/apt'):
+                os.system('apt update && apt install ' + package + ' -y')  # install arptables with apt
+                return True
+            elif os.path.isfile('/usr/bin/yum'):
+                os.system('yum install ' + package + ' -y')  # install arptables with yum
+                return True
+            elif os.path.isfile('/usr/bin/pacman'):
+                os.system('pacman -S ' + package + ' --noconfirm')  # install arptables with pacman
+                return True
+            else:
+                avalon.error('Sorry, we can\'t find a package manager that we currently support. Aborting..')
+                print('Currently Supported: apt, yum, pacman')
+                print('Please come to SCUTUM\'s github page and comment if you know how to add support to another package manager')
+                return False
+        else:
+            return False
 
     def installWicdScripts(self):
         """
@@ -170,6 +190,16 @@ class Installer():
         avalon.info('SCUTUM successfully removed!')
         exit(0)
 
+    def install_easytcp_controllers(self):
+        if os.path.islink("/usr/bin/openport"):
+            os.remove("/usr/bin/openport")
+        elif os.path.islink("/usr/bin/closeport"):
+            os.remove("/usr/bin/closeport")
+        os.system('ln -s %s/openport.py /usr/bin/openport' % self.INSTALL_DIR)
+        os.system("chmod 755 %s/openport.py" % self.INSTALL_DIR)
+        os.system('ln -s %s/closeport.py /usr/bin/closeport' % self.INSTALL_DIR)
+        os.system("chmod 755 %s/closeport.py" % self.INSTALL_DIR)
+
     def install(self):
         """
         This is the main function for installer
@@ -178,19 +208,22 @@ class Installer():
 
         config = configparser.ConfigParser()
         config["Interfaces"] = {}
-        config["Iptables"] = {}
         config["networkControllers"] = {}
 
         if os.path.isdir(self.INSTALL_DIR):
             shutil.rmtree(self.INSTALL_DIR)  # remove old scutum files
 
-        if os.path.isfile("/usr/bin/git"):
-            os.system("git clone https://github.com/K4YT3X/SCUTUM.git " + self.INSTALL_DIR)
-            os.system("chown -R root: " + self.INSTALL_DIR)
-            os.system("chmod -R 755 " + self.INSTALL_DIR)
-        else:
-            avalon.error("Command: \"git\" not found. Please install git.")
-            exit(0)
+        while True:
+            if os.path.isfile("/usr/bin/git"):
+                os.system("git clone https://github.com/K4YT3X/SCUTUM.git " + self.INSTALL_DIR)
+                os.system("chown -R root: " + self.INSTALL_DIR)
+                os.system("chmod -R 755 " + self.INSTALL_DIR)
+                break
+            else:
+                avalon.error("Command: \"git\" not found. Please install git.")
+                if not self.sysInstallPackage("git"):
+                    avalon.error("git is required for installing scutum. Aborting...")
+                    exit(1)
 
         if os.path.islink(self.SCUTUM_BIN_FILE) or os.path.isfile(self.SCUTUM_BIN_FILE):
             os.remove(self.SCUTUM_BIN_FILE)  # Remove old file or symbolic links
@@ -204,21 +237,9 @@ class Installer():
         if not os.path.isfile('/usr/bin/arptables') and not os.path.isfile('/sbin/arptables'):  # Detect if arptables installed
             print(avalon.FM.BD + avalon.FG.R + '\nWe have detected that you don\'t have arptables installed!' + avalon.FM.RST)
             print('SCUTUM requires arptables to run')
-            if avalon.ask('Install arptables?', True):
-                if os.path.isfile('/usr/bin/apt'):
-                    os.system('apt update && apt install arptables -y')  # install arptables with apt
-                elif os.path.isfile('/usr/bin/yum'):
-                    os.system('yum install arptables -y')  # install arptables with yum
-                elif os.path.isfile('/usr/bin/pacman'):
-                    os.system('pacman -S arptables --noconfirm')  # install arptables with pacman
-                else:
-                    avalon.error('Sorry, we can\'t find a package manager that we currently support. Aborting..')
-                    print('Currently Supported: apt, yum, pacman')
-                    print('Please come to SCUTUM\'s github page and comment if you know how to add support to another package manager')
-                    exit(0)
-            else:
-                avalon.error('arptables not installed. Unable to proceed. Aborting..')
-                exit(0)
+            if not self.sysInstallPackage("arptables"):
+                avalon.error("arptables is required for scutum. Exiting...")
+                exit(1)
 
         ifacesSelected = []
         while True:
@@ -286,14 +307,27 @@ class Installer():
             else:
                 avalon.error('Invalid Input!')
 
-        print(avalon.FM.BD + '\nEnable SCUTUM iptables firewall?' + avalon.FM.RST)
-        print('This firewall uses linux iptables to establish a relatively secure environment')
-        print('However, professional firewall softwares like ufw is recommended')
-        print('Enable this only if you don\'t have a firewall already')
-        avalon.warning('This feature will erase all existing iptables settings!')
+        print(avalon.FM.BD + '\nEnable UFW firewall?' + avalon.FM.RST)
+        print("Do you want SCUTUM to help configuring and enabling UFW firewall?")
+        print("This will prevent a lot of scanning and attacks")
         if avalon.ask('Enable?', False):
-            config["Iptables"]["enabled"] = "true"
+            ufwctrl = Ufw(False)
+            print("UFW can configure UFW Firewall for you")
+            print("However this will reset your current UFW configurations")
+            print("It is recommended to do so the first time you install SCUTUM")
+            if avalon.ask("Let SCUTUM configure UFW for you?", True):
+                ufwctrl.initialize(True)
+            else:
+                avalon.info("Okay. Then we will simply enable it for you")
+                ufwctrl.enable()
         else:
-            config["Iptables"]["enabled"] = "false"
+            avalon.info("You can turn it on whenever you change your mind")
+        print("\nEasy tcp controller helps you open/close ports quickly")
+        print("ex. \"openport 80\" opens port 80")
+        print("ex. \"closeport 80\" closes port 80")
+        print("ex. \"openport 80 443\" opens port 80 and 443")
+        print("ex. \"closeport 80 443\" closes port 80 and 443")
+        if avalon.ask("Install Easy TCP conroller?"):
+            self.install_easytcp_controllers()
         with open(self.CONFPATH, 'w') as configfile:
             config.write(configfile)  # Writes configurations

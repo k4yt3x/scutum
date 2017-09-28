@@ -4,13 +4,15 @@
 Name: SCUTUM Adapter Class
 Author: K4YT3X
 Date Created: Sep 26, 2017
-Last Modified: Sep 27, 2017
+Last Modified: Sep 28, 2017
 
 Description: This class controls all system configuring activities
 ex. set arptables, set iptables, etc.
 """
+
+from installer import Installer
+import avalon_framework as avalon
 import datetime
-import ipaddress
 import os
 import socket
 import struct
@@ -21,8 +23,15 @@ import time
 class Adapter:
 
     def __init__(self, interface, log):
-        self.interface = interface
         self.log = log
+        self.interface = interface
+        installer = Installer()
+        if not os.path.isfile('/usr/bin/arptables') and not os.path.isfile('/sbin/arptables'):  # Detect if arptables installed
+            print(avalon.FM.BD + avalon.FG.R + '\nWe have detected that you don\'t have arptables installed!' + avalon.FM.RST)
+            print('SCUTUM requires arptables to run')
+            if not installer.sysInstallPackage("arptables"):
+                avalon.error("arptables is required for scutum. Exiting...")
+                exit(1)
 
     def getGateway(self):
         """Get Linux Default Gateway"""
@@ -68,50 +77,6 @@ class Adapter:
                     return ipv4_address
         return False
 
-    def updateIPTables(self):
-        """
-        Add router to iptables whitelist
-        """
-        if ipaddress.ip_address(Adapter.getIP(self)).is_private:
-            os.system('iptables -P INPUT DROP')
-            os.system('iptables -P FORWARD DROP')
-            os.system('iptables -P OUTPUT ACCEPT')
-            os.system('iptables -A INPUT -p tcp --match multiport --dports 1025:65535 -j ACCEPT')
-            with open('/etc/resolv.conf', 'r') as resolv:
-                dnsServers = []
-                for line in resolv:
-                    if 'nameserver' in line:
-                        for element in line.replace('\n', '').split(' '):
-                            try:
-                                if ipaddress.ip_address(element):
-                                    dnsServers.append(element)
-                            except ValueError:
-                                pass
-            for address in dnsServers:  # Accept all DNS within /etc/resolv.conf
-                os.system('iptables -A INPUT -p udp -s ' + address + ' -j ACCEPT')
-            # os.system('iptables -A INPUT -p udp -s 208.67.222.222 -j ACCEPT')
-            # os.system('iptables -A INPUT -p udp -s 208.67.220.220 -j ACCEPT')
-            os.system('iptables -A INPUT -m iprange --src-range 10.0.0.0-10.255.255.255 -j DROP')
-            os.system('iptables -A INPUT -m iprange --src-range 172.16.0.0-172.31.255.255 -j DROP')
-            os.system('iptables -A INPUT -m iprange --src-range 192.168.0.0-192.168.255.255 -j DROP')
-        """  # this part adds gateway into iptables whitelist, might not be necessary
-        while True:  # Just keep trying forever until the router is found
-            if getGateway() != 0:
-                avalon.subLevelTimeInfo('Accepting Traffic from ' + getGateway())
-                os.system('iptables -A INPUT -s ' + getGateway() + ' -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT')
-                break
-        """
-
-    def iptablesReset(self):
-        """
-        Flush everything in iptables completely
-        This function will reset iptables and flush all custom settings
-        """
-        os.system('iptables -F && iptables -X')
-        os.system('iptables -P INPUT ACCEPT')
-        os.system('iptables -P FORWARD ACCEPT')
-        os.system('iptables -P OUTPUT ACCEPT')
-
     def updateArpTables(self):
         """
         This function adds the gateway's mac address into
@@ -132,8 +97,8 @@ class Adapter:
             if gatewayMac != '00:00:00:00:00:00' and len(gatewayMac) == 17:
                 break
             time.sleep(0.5)  # Be nice to CPU
-        self.log.write(str(datetime.datetime.now()) + '  MAC: ' + gatewayMac + '\n')
-        self.log.write(str(datetime.datetime.now()) + '  IP: ' + str(Adapter.getIP(self)) + '\n')
+        self.log.writeLog(str(datetime.datetime.now()) + '  MAC: ' + gatewayMac + '\n')
+        self.log.writeLog(str(datetime.datetime.now()) + '  IP: ' + str(Adapter.getIP(self)) + '\n')
         os.system('arptables --flush')
         os.system('arptables -P INPUT DROP')
         os.system('arptables -A INPUT --source-mac ' + gatewayMac + ' -j ACCEPT')

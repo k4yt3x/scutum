@@ -23,7 +23,7 @@
 Name: SCUTUM Firewall
 Author: K4T
 Date of Creation: March 8,2017
-Last Modified: Sep 27,2017
+Last Modified: Sep 28,2017
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -42,21 +42,24 @@ TODO:
  [x] Create different class for Installer
  [x] Register SCUTUM as a systemd system service
  [x] Change the way configurations are being stored (configparser)
+ [x] Fix loggin format error
  [ ] Change SCUTUM GUI to adapt systemd
- [ ] Add dynamic inspection?
- [ ] Fix loggin format error
  [ ] Fix options for iptables firewall
+ [ ] Add dynamic inspection?
  [ ] Create .deb package
 
 """
 from __future__ import print_function
-from installer import Installer
 from adapter import Adapter
+from installer import Installer
+from iptables import Ufw
+from logger import Logger
 import argparse
+import configparser
 import datetime
 import os
+import traceback
 import urllib.request
-import configparser
 
 try:
     import avalon_framework as avalon
@@ -99,7 +102,7 @@ except ImportError:
 
 LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
-VERSION = '2.6.0 beta 1'
+VERSION = '2.6.0 beta 3'
 
 
 # -------------------------------- Functions --------------------------------
@@ -126,8 +129,8 @@ def processArguments():
     control_group.add_argument("--enable", help="Enable SCUTUM", action="store_true", default=False)
     control_group.add_argument("--disable", help="Disable SCUTUM", action="store_true", default=False)
     control_group.add_argument("--status", help="Show SCUTUM current status", action="store_true", default=False)
-    # control_group.add_argument("--enablegeneric", help="Enable SCUTUM generic firewall", action="store_true", default=False)
-    # control_group.add_argument("--disablegeneric", help="Disnable SCUTUM generic firewall", action="store_true", default=False)
+    control_group.add_argument("--enablegeneric", help="Enable SCUTUM generic firewall", action="store_true", default=False)
+    control_group.add_argument("--disablegeneric", help="Disnable SCUTUM generic firewall", action="store_true", default=False)
     control_group.add_argument("--reset", help="Disable SCUTUM temporarily before the next connection", action="store_true", default=False)
     control_group.add_argument("--purgelog", help="Purge SCUTUM log file", action="store_true", default=False)
     inst_group = parser.add_argument_group('Installation')
@@ -140,10 +143,12 @@ def processArguments():
 # -------------------------------- Execute --------------------------------
 
 processArguments()
+
+log = Logger(LOGPATH)
+
 installer = Installer(CONFPATH)
 if not (args.enable or args.disable):
         printIcon()
-
 if args.upgrade:
     installer.check_avalon()
     installer.check_version(VERSION)
@@ -155,9 +160,8 @@ try:
         print(avalon.FG.LGR + 'It needs to control the system firewall so..' + avalon.FM.RST)
         exit(0)
     if not (args.purgelog or args.install or args.uninstall):
-        log = open(LOGPATH, 'a+')  # Just for debugging
-        log.write(str(datetime.datetime.now()) + ' ---- START ----\n')
-        log.write(str(datetime.datetime.now()) + '  UID: ' + str(os.getuid()) + '\n')
+        log.writeLog(str(datetime.datetime.now()) + ' ---- START ----\n')
+        log.writeLog(str(datetime.datetime.now()) + '  UID: ' + str(os.getuid()) + '\n')
         if not os.path.isfile(CONFPATH):
             avalon.error('SCUTUM Config file not found! Please re-install SCUTUM!')
             avalon.warning('Please run "scutum --install" before using it for the first time')
@@ -193,18 +197,18 @@ try:
             avalon.warning('Removal Canceled')
             exit(0)
     elif args.reset:
-        log.write(str(datetime.datetime.now()) + ' ---- START ----\n')
+        log.writeLog(str(datetime.datetime.now()) + ' ---- START ----\n')
         os.system('arptables -P INPUT ACCEPT')
         os.system('arptables --flush')
         avalon.info('RST OK')
-        log.write(str(datetime.datetime.now()) + ' RESET OK\n')
+        log.writeLog(str(datetime.datetime.now()) + ' RESET OK\n')
     elif args.purgelog:
-        os.remove(LOGPATH)
+        log.purge()
         avalon.info('LOG PURGE OK')
         exit(0)
     elif args.enable or args.disable:
         if args.enable:
-            log.write(str(datetime.datetime.now()) + " SCUTUM ENABLED")
+            log.writeLog(str(datetime.datetime.now()) + " SCUTUM ENABLED")
             if "wicd" in networkControllers.split(","):
                 installer.installNMScripts(config["networkControllers"]["controllers"].split(","))
             if "NetworkManager" in networkControllers.split(","):
@@ -223,12 +227,18 @@ try:
                     interface.updateIPTables()
             avalon.info('OK')
         elif args.disable:
-            log.write(str(datetime.datetime.now()) + " SCUTUM DISABLED")
+            log.writeLog(str(datetime.datetime.now()) + " SCUTUM DISABLED")
             installer.removeNMScripts()
             installer.removeWicdScripts()
             os.system('arptables -P INPUT ACCEPT')
             os.system('arptables --flush')
             avalon.info('RST OK')
+    elif args.enablegeneric or args.disablegeneric:
+        ufwctrl = Ufw(log)
+        if args.enablegeneric:
+            ufwctrl.enable()
+        elif args.disablegeneric:
+            ufwctrl.disable()
     else:
         ifaceobjs = []  # a list to store internet controller objects
         os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
@@ -239,9 +249,6 @@ try:
 
         for interface in ifaceobjs:
             interface.updateArpTables()
-            if iptablesEnabled:
-                interface.iptablesReset()
-                interface.updateIPTables()
         avalon.info('OK')
 except KeyboardInterrupt:
     print('\n')
@@ -250,11 +257,12 @@ except KeyError:
     avalon.error('The program configuration file is broken for some reason')
     avalon.error('You should reinstall SCUTUM to repair the configuration file')
 except Exception as er:
-    avalon.error(str(er))
-    if not (args.purgelog or args.install or args.uninstall or os.getuid() != 0):
-        log.write(str(datetime.datetime.now()) + ' -!-! ERROR !-!-\n')
-        log.write(str(er) + '\n')
+    print()
+    avalon.error("SCUTUM has encountered an error:")
+    traceback.print_exc()
+    if os.getuid() == 0:
+        log.writeLog(str(datetime.datetime.now()) + ' -!-! ERROR !-!-\n')
+        log.writeLog(str(er) + '\n')
 finally:
     if not (args.purgelog or args.install or args.uninstall or os.getuid() != 0):
-        log.write(str(datetime.datetime.now()) + ' ---- FINISH ----\n\n')
-        log.close()
+        log.writeLog(str(datetime.datetime.now()) + ' ---- FINISH ----\n\n')
