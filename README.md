@@ -3,7 +3,7 @@
 
 # SCUTUM Firewall
 
-#### Current Version: 2.6.0 beta 1
+#### Current Version: 2.6.0 beta 3
 
 ### This is an UNSTABLE version
 
@@ -24,6 +24,9 @@ BTW the installation method right now is pretty dumb. It will be changed soon. H
 </br>
 
 #### Current Version Change log:
+1. Changed TCP/UDP/ICMP Firewall to UFW
+1. Added new logger
+1. Added Easy TCP port manager
 1. Created different class for adapter controller
 1. Created different class for Installer
 1. Registers SCUTUM as a systemd system service
