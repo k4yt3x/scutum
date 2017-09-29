@@ -210,6 +210,7 @@ class Installer():
         config["Interfaces"] = {}
         config["networkControllers"] = {}
 
+        """
         if os.path.isdir(self.INSTALL_DIR):
             shutil.rmtree(self.INSTALL_DIR)  # remove old scutum files
 
@@ -224,6 +225,7 @@ class Installer():
                 if not self.sysInstallPackage("git"):
                     avalon.error("git is required for installing scutum. Aborting...")
                     exit(1)
+        """
 
         if os.path.islink(self.SCUTUM_BIN_FILE) or os.path.isfile(self.SCUTUM_BIN_FILE):
             os.remove(self.SCUTUM_BIN_FILE)  # Remove old file or symbolic links
