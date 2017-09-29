@@ -102,7 +102,7 @@ except ImportError:
 
 LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
-VERSION = '2.6.0 beta 3'
+VERSION = '2.6.0 beta 4'
 
 
 # -------------------------------- Functions --------------------------------
