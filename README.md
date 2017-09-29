@@ -3,7 +3,7 @@
 
 # SCUTUM Firewall
 
-#### Current Version: 2.6.0 beta 3
+#### Current Version: 2.6.0 beta 4
 
 ### This is an UNSTABLE version
 
@@ -24,6 +24,7 @@ BTW the installation method right now is pretty dumb. It will be changed soon. H
 </br>
 
 #### Current Version Change log:
+1. Fixed & Improved the Installation Mathod
 1. Changed TCP/UDP/ICMP Firewall to UFW
 1. Added new logger
 1. Added Easy TCP port manager
