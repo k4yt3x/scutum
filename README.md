@@ -10,14 +10,24 @@
 ~~**It is now recommended to upgrade scutum with --upgrade parameter** (since 2.5.2)~~  
 Never mind. Please run the installation below again manually.
 
-**Currently only working for Debian Distros**
-
 <br>
 
 ## Quick Install
-I made it really easy :D  
+### Prerequisites
+* Designed for Linux OS
+* `curl` or `wget` is required for quick install
+* `git` should be installed
+
+**SCUTUM Dependencies can be found in [DEPENDENCIES.md](https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/DEPENDENCIES.md))**
+
+**via curl**
 ~~~~
 $ sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quickinstall.sh)"
+~~~~
+
+**via wget**
+~~~~
+$ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quickinstall.sh -O -)"
 ~~~~
 BTW the installation method right now is pretty dumb. It will be changed soon. However it doen't affect the installation besides a little slow.
 
