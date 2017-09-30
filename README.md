@@ -29,7 +29,6 @@ $ sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/K4YT3X/SCUTUM/maste
 ~~~~
 $ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quickinstall.sh -O -)"
 ~~~~
-BTW the installation method right now is pretty dumb. It will be changed soon. However it doen't affect the installation besides a little slow.
 
 </br>
 
