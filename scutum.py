@@ -204,9 +204,9 @@ try:
         if args.enable:
             log.writeLog(str(datetime.datetime.now()) + " SCUTUM ENABLED")
             if "wicd" in networkControllers.split(","):
-                installer.installNMScripts(config["networkControllers"]["controllers"].split(","))
-            if "NetworkManager" in networkControllers.split(","):
                 installer.installWicdScripts()
+            if "NetworkManager" in networkControllers.split(","):
+                installer.installNMScripts(config["networkControllers"]["controllers"].split(","))
             ifaceobjs = []  # a list to store internet controller objects
             os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
 
@@ -216,9 +216,6 @@ try:
 
             for interface in ifaceobjs:
                 interface.updateArpTables()
-                if iptablesEnabled:
-                    interface.iptablesReset()
-                    interface.updateIPTables()
             avalon.info('OK')
         elif args.disable:
             log.writeLog(str(datetime.datetime.now()) + " SCUTUM DISABLED")
