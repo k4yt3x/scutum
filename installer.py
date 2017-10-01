@@ -109,7 +109,7 @@ class Installer():
                 os.system('mkdir /etc/wicd/scripts/postdisconnect/')
             else:
                 avalon.warning('Aborting installation for WICD')
-                return 0
+                return False
         with open('/etc/wicd/scripts/postconnect/scutum_connect', 'w') as postconnect:
             postconnect.write('#!/bin/bash\n')
             postconnect.write('scutum')
@@ -123,6 +123,7 @@ class Installer():
         os.system('chown root: /etc/wicd/scripts/postdisconnect/scutum_disconnect')
         os.system('chmod 755 /etc/wicd/scripts/postdisconnect/scutum_disconnect')
         print(avalon.FG.G + avalon.FM.BD + 'SUCCEED' + avalon.FM.RST)
+        return True
 
     def installNMScripts(self, interfaces):
         """
@@ -137,7 +138,7 @@ class Installer():
                 os.system('mkdir /etc/NetworkManager/dispatcher.d/')
             else:
                 avalon.warning('Aborting installation for NetworkManager')
-                return 0
+                return False
         with open('/etc/NetworkManager/dispatcher.d/scutum', 'w') as nmScript:
             nmScript.write("#!/bin/bash\n")
             nmScript.write(" \n")
@@ -163,6 +164,7 @@ class Installer():
         os.system('chown root: /etc/NetworkManager/dispatcher.d/scutum')
         os.system('chmod 755 /etc/NetworkManager/dispatcher.d/scutum')
         print(avalon.FG.G + avalon.FM.BD + 'SUCCEED' + avalon.FM.RST)
+        return True
 
     def removeWicdScripts(self):
         try:
@@ -294,16 +296,31 @@ class Installer():
             selection = avalon.gets('Please select: (index number): ')
 
             if selection == '1':
-                self.installWicdScripts()
+                if self.installWicdScripts() is not True:
+                    avalon.error("SCUTUM Script for WICD has failed to install!")
+                    avalon.error("Aborting Installation...")
+                    exit(1)
                 config["networkControllers"]["controllers"] = "wicd"
                 break
             elif selection == '2':
-                self.installNMScripts(ifacesSelected)
+                if self.installNMScripts(ifacesSelected) is not True:
+                    avalon.error("SCUTUM Script for NetworkManager has failed to install!")
+                    avalon.error("Aborting Installation...")
+                    exit(1)
                 config["networkControllers"]["controllers"] = "NetworkManager"
                 break
             elif selection == '3':
-                self.installWicdScripts()
-                self.installNMScripts(ifacesSelected)
+                ifaces = ["wicd", "NetworkManager"]
+                if self.installWicdScripts() is not True:
+                    avalon.warning("Deselected WICD from installation")
+                    ifaces.remove("wicd")
+                if self.installNMScripts(ifacesSelected) is not True:
+                    avalon.warning("Deselected NetworkManager from installation")
+                    ifaces.remove("NetworkManager")
+                if len(ifaces) == 0:
+                    avalon.error("All SCUTUM Scripts have failed to install!")
+                    avalon.error("Aborting Installation...")
+                    exit(1)
                 config["networkControllers"]["controllers"] = "wicd,NetworkManager"
                 break
             else:

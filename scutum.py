@@ -251,13 +251,14 @@ except KeyError:
     avalon.error('The program configuration file is broken for some reason')
     avalon.error('You should reinstall SCUTUM to repair the configuration file')
     traceback.print_exc()
-except Exception as er:
+except Exception as e:
     print()
     avalon.error("SCUTUM has encountered an error:")
     traceback.print_exc()
     if os.getuid() == 0:
         log.writeLog(str(datetime.datetime.now()) + ' -!-! ERROR !-!-\n')
-        log.writeLog(str(er) + '\n')
+        log.writeLog(str(e) + '\n')
 finally:
     if not (args.purgelog or args.install or args.uninstall or os.getuid() != 0):
         log.writeLog(str(datetime.datetime.now()) + ' ---- FINISH ----\n\n')
+    exit(1)
