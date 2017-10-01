@@ -18,7 +18,7 @@ Never mind. Please run the installation below again manually.
 * `curl` or `wget` is required for quick install
 * `git` should be installed
 
-**SCUTUM Dependencies can be found in [DEPENDENCIES.md](https://github.com/K4YT3X/SCUTUM/blob/master/README.md))**
+**SCUTUM Dependencies can be found in [DEPENDENCIES.md](https://github.com/K4YT3X/SCUTUM/blob/master/README.md)**
 
 **via curl**
 ~~~~
