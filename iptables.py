@@ -36,6 +36,10 @@ class Ufw:
             FileNotFoundError -- raised when UFW not installed
         """
         self.log = log
+        if log is False:
+            from logger import Logger
+            self.log = Logger()
+
         if not os.path.isfile('/usr/sbin/ufw'):  # Detect if ufw installed
             print(avalon.FM.BD + avalon.FG.R + '\nWe have detected that you don\'t have UFW installed!' + avalon.FM.RST)
             print('UFW Firewall function requires UFW to run')

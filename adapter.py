@@ -26,16 +26,19 @@ class Adapter:
     This is the core part of this program (maybe, in some ways)
     """
 
-    def __init__(self, interface, log):
+    def __init__(self, interface, log=False):
         """
         Arguments:
             interface {string} -- name of interface to handle
-            log {object} -- object of logger
+            log {object} -- object of logger (default: {False})
 
         Raises:
             FileNotFoundError -- raised when arptables not installed
         """
         self.log = log
+        if log is False:
+            from logger import Logger
+            self.log = Logger()
         self.interface = interface
         installer = Installer()
         if not os.path.isfile('/usr/bin/arptables') and not os.path.isfile('/sbin/arptables'):  # Detect if arptables installed
