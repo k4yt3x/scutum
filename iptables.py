@@ -12,7 +12,6 @@ using ufw and iptables.
 This class is migrated from Project: DefenseMatrix
 """
 
-from installer import Installer
 import avalon_framework as avalon
 import ipaddress
 import os
@@ -37,13 +36,31 @@ class Ufw:
             FileNotFoundError -- raised when UFW not installed
         """
         self.log = log
-        installer = Installer()
         if not os.path.isfile('/usr/sbin/ufw'):  # Detect if ufw installed
             print(avalon.FM.BD + avalon.FG.R + '\nWe have detected that you don\'t have UFW installed!' + avalon.FM.RST)
             print('UFW Firewall function requires UFW to run')
-            if not installer.sysInstallPackage("ufw"):
+            if not self.sysInstallPackage("ufw"):
                 avalon.error("ufw is required for this function. Exiting...")
                 raise FileNotFoundError("File: \"/usr/sbin/ufw\" not found")
+
+    def sysInstallPackage(self, package):
+        if avalon.ask('Install ' + package + '?', True):
+            if os.path.isfile('/usr/bin/apt'):
+                os.system('apt update && apt install ' + package + ' -y')  # install arptables with apt
+                return True
+            elif os.path.isfile('/usr/bin/yum'):
+                os.system('yum install ' + package + ' -y')  # install arptables with yum
+                return True
+            elif os.path.isfile('/usr/bin/pacman'):
+                os.system('pacman -S ' + package + ' --noconfirm')  # install arptables with pacman
+                return True
+            else:
+                avalon.error('Sorry, we can\'t find a package manager that we currently support. Aborting..')
+                print('Currently Supported: apt, yum, pacman')
+                print('Please come to SCUTUM\'s github page and comment if you know how to add support to another package manager')
+                return False
+        else:
+            return False
 
     def initialize(self, purge=True):
         """
