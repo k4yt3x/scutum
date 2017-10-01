@@ -4,7 +4,7 @@
 Name: SCUTUM iptables Class
 Author: K4YT3X
 Date Created: Sep 15, 2017
-Last Modified: Sep 28, 2017
+Last Modified: Sep 30, 2017
 
 Description: This class controls TCP/UDP/ICMP traffic
 using ufw and iptables.
@@ -19,14 +19,29 @@ import subprocess
 
 
 class Ufw:
+    """
+    UFW controller class
+
+    This class handles UFW Firewall
+    UFW has to be installed when an object of this class is created,
+    otherwise the program will raise an exception
+    """
 
     def __init__(self, log=False):
+        """
+        Keyword Arguments:
+            log {object} -- object of logger (default: {False})
+
+        Raises:
+            FileNotFoundError -- raised when UFW not installed
+        """
         self.log = log
         if not os.path.isfile('/usr/sbin/ufw'):  # Detect if ufw installed
             print(avalon.FM.BD + avalon.FG.R + '\nWe have detected that you don\'t have UFW installed!' + avalon.FM.RST)
             print('UFW Firewall function requires UFW to run')
             if not self.sysInstallPackage("ufw"):
                 avalon.error("ufw is required for this function. Exiting...")
+                raise FileNotFoundError("File: \"/usr/sbin/ufw\" not found")
 
     def initialize(self, purge=True):
         """

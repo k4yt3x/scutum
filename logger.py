@@ -4,7 +4,7 @@
 Name: SCUTUM Logger Class
 Author: K4YT3X
 Date Created: Sep 15, 2017
-Last Modified: Sep 28, 2017
+Last Modified: Sep 30, 2017
 
 Description: Handles all the logging actions
 
@@ -17,9 +17,15 @@ import os
 class Logger:
 
     def __init__(self, LOGPATH=False):
-        self.LOGPATH = LOGPATH
+        self.LOGPATH = LOGPATH  # The path of log file
 
     def writeLog(self, content):
+        """
+        This method writes the content given into the log file
+
+        Arguments:
+            content {string} -- content to write into log
+        """
         if self.LOGPATH:
             with open(self.LOGPATH, "a+") as log:
                 log.write(str(datetime.datetime.now()) + " " + str(content) + "\n")

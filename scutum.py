@@ -23,7 +23,7 @@
 Name: SCUTUM Firewall
 Author: K4T
 Date of Creation: March 8,2017
-Last Modified: Sep 28,2017
+Last Modified: Sep 30,2017
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -43,8 +43,9 @@ TODO:
  [x] Register SCUTUM as a systemd system service
  [x] Change the way configurations are being stored (configparser)
  [x] Fix loggin format error
+ [x] Fix options for iptables firewall
+ [x] Create a requirements list
  [ ] Change SCUTUM GUI to adapt systemd
- [ ] Fix options for iptables firewall
  [ ] Add dynamic inspection?
  [ ] Create .deb package
 
@@ -102,7 +103,7 @@ except ImportError:
 
 LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
-VERSION = '2.6.0 beta 4'
+VERSION = '2.6.0 beta 5'
 
 
 # -------------------------------- Functions --------------------------------

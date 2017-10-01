@@ -3,7 +3,7 @@
 
 # SCUTUM Firewall
 
-#### Current Version: 2.6.0 beta 4
+#### Current Version: 2.6.0 beta 5
 
 ### This is an UNSTABLE version
 
@@ -33,6 +33,7 @@ $ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quic
 </br>
 
 #### Current Version Change log:
+1. A LOT of other small improvements (eg. documentations)
 1. Fixed & Improved the Installation Mathod
 1. Changed TCP/UDP/ICMP Firewall to UFW
 1. Added new logger

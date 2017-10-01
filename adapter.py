@@ -4,7 +4,7 @@
 Name: SCUTUM Adapter Class
 Author: K4YT3X
 Date Created: Sep 26, 2017
-Last Modified: Sep 28, 2017
+Last Modified: Sep 30, 2017
 
 Description: This class controls all system configuring activities
 ex. set arptables, set iptables, etc.
@@ -21,8 +21,20 @@ import time
 
 
 class Adapter:
+    """
+    The Adapter class handles the arp firewall
+    This is the core part of this program (maybe, in some ways)
+    """
 
     def __init__(self, interface, log):
+        """
+        Arguments:
+            interface {string} -- name of interface to handle
+            log {object} -- object of logger
+
+        Raises:
+            FileNotFoundError -- raised when arptables not installed
+        """
         self.log = log
         self.interface = interface
         installer = Installer()
@@ -31,7 +43,7 @@ class Adapter:
             print('SCUTUM requires arptables to run')
             if not installer.sysInstallPackage("arptables"):
                 avalon.error("arptables is required for scutum. Exiting...")
-                exit(1)
+                raise FileNotFoundError("File: \"/usr/bin/arptables\" and \"/sbin/arptables\" not found")
 
     def getGateway(self):
         """Get Linux Default Gateway"""
