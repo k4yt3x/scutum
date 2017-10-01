@@ -197,17 +197,17 @@ class Installer():
             os.remove("/usr/bin/openport")
         elif os.path.islink("/usr/bin/closeport"):
             os.remove("/usr/bin/closeport")
-        os.system('ln -s %s/openport.py /usr/bin/openport' % self.INSTALL_DIR)
-        os.system("chmod 755 %s/openport.py" % self.INSTALL_DIR)
-        os.system('ln -s %s/closeport.py /usr/bin/closeport' % self.INSTALL_DIR)
-        os.system("chmod 755 %s/closeport.py" % self.INSTALL_DIR)
+        os.system('ln -s {}/openport.py /usr/bin/openport'.format(self.INSTALL_DIR))
+        os.system("chmod 755 {}/openport.py".format(self.INSTALL_DIR))
+        os.system('ln -s {}/closeport.py /usr/bin/closeport'.format(self.INSTALL_DIR))
+        os.system("chmod 755 {}/closeport.py".format(self.INSTALL_DIR))
 
     def install_scutum_gui(self):
         DESKTOP_FILE = "/usr/share/applications/scutum-gui.desktop"
         if os.path.islink(DESKTOP_FILE) or os.path.isfile(DESKTOP_FILE):
             os.remove(DESKTOP_FILE)
-        os.system('ln -s %s/scutum-gui.desktop ' + DESKTOP_FILE % self.INSTALL_DIR)
-        os.system("chmod 755 %s/scutum-gui.desktop" % self.INSTALL_DIR)
+        os.system('ln -s {}/scutum-gui.desktop {}'.format(self.INSTALL_DIR, DESKTOP_FILE))
+        os.system("chmod 755 {}/scutum-gui.desktop".format(self.INSTALL_DIR))
 
     def install(self):
         """
@@ -350,7 +350,7 @@ class Installer():
             avalon.info("You can turn it on whenever you change your mind")
 
         print(avalon.FM.BD + '\nInstall Easy TCP controllers?' + avalon.FM.RST)
-        print("\nEasy tcp controller helps you open/close ports quickly")
+        print("Easy tcp controller helps you open/close ports quickly")
         print("ex. \"openport 80\" opens port 80")
         print("ex. \"closeport 80\" closes port 80")
         print("ex. \"openport 80 443\" opens port 80 and 443")
@@ -359,7 +359,7 @@ class Installer():
             self.install_easytcp_controllers()
 
         print(avalon.FM.BD + '\nInstall SCUTUM GUI?' + avalon.FM.RST)
-        print("\nSCUTUM GUI is convenient for GUI Interfaces")
+        print("SCUTUM GUI is convenient for GUI Interfaces")
         print("ex. KDE, GNOME, XFCE, etc.")
         print("However, there\'s not point to install GUI on servers")
         if avalon.ask("Install SCUTUM GUI?", True):
