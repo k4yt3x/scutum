@@ -195,7 +195,7 @@ class Installer():
     def install_easytcp_controllers(self):
         if os.path.islink("/usr/bin/openport"):
             os.remove("/usr/bin/openport")
-        elif os.path.islink("/usr/bin/closeport"):
+        if os.path.islink("/usr/bin/closeport"):
             os.remove("/usr/bin/closeport")
         os.system('ln -s {}/openport.py /usr/bin/openport'.format(self.INSTALL_DIR))
         os.system("chmod 755 {}/openport.py".format(self.INSTALL_DIR))
