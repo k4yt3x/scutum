@@ -1,22 +1,28 @@
+/**************************
+ * Name: SCUTUM GUI
+ * Author K4YT3X
+ * Date Created: I can't remember
+ * Last Modified: Oct 1, 2017
+ *
+ * For SCUTUM 2.6.0 beta 5
+**************************/
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <iostream>
 #include <string>
-#include <QtCore/QFile>
-#include <QtCore/QTextStream>
 
 MainWindow::MainWindow(QWidget *parent):QMainWindow(parent), ui(new Ui::MainWindow){
     ui->setupUi(this);
     int scutumStatus = getScutumStatus();
-    if (scutumStatus == 1) {
-        QPalette platte;
-        platte.setColor(QPalette::WindowText,Qt::red);
-        ui->statusLabel->setText("DISABLED");
-        ui->statusLabel->setPalette(platte);
-    } else if (scutumStatus == 0) {
+    if (scutumStatus == 0) {
         QPalette platte;
         platte.setColor(QPalette::WindowText,Qt::green);
         ui->statusLabel->setText("ENABLED");
+        ui->statusLabel->setPalette(platte);
+    } else {
+        QPalette platte;
+        platte.setColor(QPalette::WindowText,Qt::red);
+        ui->statusLabel->setText("DISABLED");
         ui->statusLabel->setPalette(platte);
     }
 
@@ -27,16 +33,7 @@ MainWindow::~MainWindow(){
 }
 
 int MainWindow::getScutumStatus(){
-    QFile scutumCFG("/etc/scutum.conf");
-    scutumCFG.open(QIODevice::ReadOnly);
-    QTextStream cfgstream(&scutumCFG);
-    const QString content = cfgstream.readAll();
-    scutumCFG.close();
-    if (content.contains("enabled=true")) {
-            return 0;
-    } else {
-        return 1;
-    }
+    return system("/lib/systemd/systemd-sysv-install is-enabled scutum");
 }
 
 void MainWindow::on_enableButton_clicked()
@@ -45,7 +42,8 @@ void MainWindow::on_enableButton_clicked()
     platte.setColor(QPalette::WindowText,Qt::green);
     ui->statusLabel->setText("ENABLED");
     ui->statusLabel->setPalette(platte);
-    system("gksu \"scutum --enable\"");
+    system("gksu \"systemctl enable scutum\"");
+    system("gksu \"service scutum start\"");
 }
 
 void MainWindow::on_disableButton_clicked()
@@ -54,7 +52,8 @@ void MainWindow::on_disableButton_clicked()
     platte.setColor(QPalette::WindowText,Qt::red);
     ui->statusLabel->setText("DISABLED");
     ui->statusLabel->setPalette(platte);
-    system("gksu \"scutum --disable\"");
+    system("gksu \"systemctl disable scutum\"");
+    system("gksu \"service scutum stop\"");
 }
 
 void MainWindow::on_disabletempButton_clicked()

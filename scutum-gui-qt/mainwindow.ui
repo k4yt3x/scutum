@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>547</width>
+    <width>600</width>
     <height>282</height>
    </rect>
   </property>
@@ -62,7 +62,7 @@
      <rect>
       <x>220</x>
       <y>30</y>
-      <width>321</width>
+      <width>371</width>
       <height>51</height>
      </rect>
     </property>
@@ -110,7 +110,7 @@
      <rect>
       <x>330</x>
       <y>90</y>
-      <width>191</width>
+      <width>251</width>
       <height>100</height>
      </rect>
     </property>
@@ -132,8 +132,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>547</width>
-     <height>24</height>
+     <width>600</width>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMain_C2">
