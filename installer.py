@@ -202,6 +202,12 @@ class Installer():
         os.system('ln -s %s/closeport.py /usr/bin/closeport' % self.INSTALL_DIR)
         os.system("chmod 755 %s/closeport.py" % self.INSTALL_DIR)
 
+    def install_scutum_gui(self):
+        if os.path.islink("/usr/share/applications/scutum-gui.desktop"):
+            os.remove("/usr/share/applications/scutum-gui.desktop")
+        os.system('ln -s %s/scutum-gui.desktop /usr/share/applications/scutum-gui.desktop' % self.INSTALL_DIR)
+        os.system("chmod 755 %s/scutum-gui.desktop" % self.INSTALL_DIR)
+
     def install(self):
         """
         This is the main function for installer
@@ -348,5 +354,12 @@ class Installer():
         print("ex. \"closeport 80 443\" closes port 80 and 443")
         if avalon.ask("Install Easy TCP conroller?", True):
             self.install_easytcp_controllers()
+
+        print("\nSCUTUM GUI is convenient for GUI Interfaces")
+        print("ex. KDE, GNOME, XFCE, etc.")
+        print("However, there\'s not point to install GUI on servers")
+        if avalon.ask("Install SCUTUM GUI?", True):
+            self.install_scutum_gui()
+
         with open(self.CONFPATH, 'w') as configfile:
             config.write(configfile)  # Writes configurations
