@@ -157,6 +157,7 @@ if args.version:
     print("License: GNU GPL v3")
     print("Github Page: https://github.com/K4YT3X/SCUTUM")
     print("Contact: k4yt3x@protonmail.com")
+    print()
     exit(0)
 
 log = Logger(LOGPATH)
