@@ -219,23 +219,6 @@ class Installer():
         config["Interfaces"] = {}
         config["networkControllers"] = {}
 
-        """
-        if os.path.isdir(self.INSTALL_DIR):
-            shutil.rmtree(self.INSTALL_DIR)  # remove old scutum files
-
-        while True:
-            if os.path.isfile("/usr/bin/git"):
-                os.system("git clone https://github.com/K4YT3X/SCUTUM.git " + self.INSTALL_DIR)
-                os.system("chown -R root: " + self.INSTALL_DIR)
-                os.system("chmod -R 755 " + self.INSTALL_DIR)
-                break
-            else:
-                avalon.error("Command: \"git\" not found. Please install git.")
-                if not self.sysInstallPackage("git"):
-                    avalon.error("git is required for installing scutum. Aborting...")
-                    exit(1)
-        """
-
         if os.path.islink(self.SCUTUM_BIN_FILE) or os.path.isfile(self.SCUTUM_BIN_FILE):
             os.remove(self.SCUTUM_BIN_FILE)  # Remove old file or symbolic links
 
