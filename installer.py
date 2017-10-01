@@ -321,7 +321,7 @@ class Installer():
                     avalon.error("All SCUTUM Scripts have failed to install!")
                     avalon.error("Aborting Installation...")
                     exit(1)
-                config["networkControllers"]["controllers"] = "wicd,NetworkManager"
+                config["networkControllers"]["controllers"] = ",".join(ifaces)
                 break
             else:
                 avalon.error('Invalid Input!')
@@ -329,7 +329,7 @@ class Installer():
         print(avalon.FM.BD + '\nEnable UFW firewall?' + avalon.FM.RST)
         print("Do you want SCUTUM to help configuring and enabling UFW firewall?")
         print("This will prevent a lot of scanning and attacks")
-        if avalon.ask('Enable?', False):
+        if avalon.ask('Enable?', True):
             ufwctrl = Ufw(False)
             print("UFW can configure UFW Firewall for you")
             print("However this will reset your current UFW configurations")
@@ -346,7 +346,7 @@ class Installer():
         print("ex. \"closeport 80\" closes port 80")
         print("ex. \"openport 80 443\" opens port 80 and 443")
         print("ex. \"closeport 80 443\" closes port 80 and 443")
-        if avalon.ask("Install Easy TCP conroller?"):
+        if avalon.ask("Install Easy TCP conroller?", True):
             self.install_easytcp_controllers()
         with open(self.CONFPATH, 'w') as configfile:
             config.write(configfile)  # Writes configurations
