@@ -203,9 +203,10 @@ class Installer():
         os.system("chmod 755 %s/closeport.py" % self.INSTALL_DIR)
 
     def install_scutum_gui(self):
-        if os.path.islink("/usr/share/applications/scutum-gui.desktop"):
-            os.remove("/usr/share/applications/scutum-gui.desktop")
-        os.system('ln -s %s/scutum-gui.desktop /usr/share/applications/scutum-gui.desktop' % self.INSTALL_DIR)
+        DESKTOP_FILE = "/usr/share/applications/scutum-gui.desktop"
+        if os.path.islink(DESKTOP_FILE) or os.path.isfile(DESKTOP_FILE):
+            os.remove(DESKTOP_FILE)
+        os.system('ln -s %s/scutum-gui.desktop ' + DESKTOP_FILE % self.INSTALL_DIR)
         os.system("chmod 755 %s/scutum-gui.desktop" % self.INSTALL_DIR)
 
     def install(self):
@@ -347,14 +348,17 @@ class Installer():
                 ufwctrl.enable()
         else:
             avalon.info("You can turn it on whenever you change your mind")
+
+        print(avalon.FM.BD + '\nInstall Easy TCP controllers?' + avalon.FM.RST)
         print("\nEasy tcp controller helps you open/close ports quickly")
         print("ex. \"openport 80\" opens port 80")
         print("ex. \"closeport 80\" closes port 80")
         print("ex. \"openport 80 443\" opens port 80 and 443")
         print("ex. \"closeport 80 443\" closes port 80 and 443")
-        if avalon.ask("Install Easy TCP conroller?", True):
+        if avalon.ask("Install Easy TCP conrollers?", True):
             self.install_easytcp_controllers()
 
+        print(avalon.FM.BD + '\nInstall SCUTUM GUI?' + avalon.FM.RST)
         print("\nSCUTUM GUI is convenient for GUI Interfaces")
         print("ex. KDE, GNOME, XFCE, etc.")
         print("However, there\'s not point to install GUI on servers")
