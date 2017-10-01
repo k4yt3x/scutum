@@ -4,7 +4,7 @@
 Name: SCUTUM Installer Class
 Author: K4YT3X
 Date Created: Sep 26, 2017
-Last Modified: Sep 28, 2017
+Last Modified: Sep 30, 2017
 
 Description: Handles the installation, removal, configuring and
 upgrading for SCUTUM
@@ -75,7 +75,7 @@ class Installer():
             avalon.subLevelTimeInfo('Current version: ' + localVersion)
             avalon.info('AVALON Framework is already on the newest version')
 
-    def sysInstallPackage(package):
+    def sysInstallPackage(self, package):
         if avalon.ask('Install ' + package + '?', True):
             if os.path.isfile('/usr/bin/apt'):
                 os.system('apt update && apt install ' + package + ' -y')  # install arptables with apt
