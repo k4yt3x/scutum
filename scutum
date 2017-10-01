@@ -3,10 +3,10 @@
 # Provides:          scutum
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Required-­Start:    
-# Required­-Stop:     
-# Should­-Start:      
-# Should-­Stop:       
+# Required-Sart:    
+# Required-Stop:     
+# Should-Start:      
+# Should-Stop:       
 # X-Interactive:     true
 # Short-Description: SCUTUM Firewall
 # Description:       Start SCUTUM firewall
