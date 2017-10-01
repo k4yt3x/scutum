@@ -138,6 +138,8 @@ def processArguments():
     inst_group.add_argument("--install", help="Install Scutum Automatically", action="store_true", default=False)
     inst_group.add_argument("--uninstall", help="Uninstall Scutum Automatically", action="store_true", default=False)
     inst_group.add_argument("--upgrade", help="Check SCUTUM & AVALON Framework Updates", action="store_true", default=False)
+    etc = parser.add_argument_group('Extra')
+    etc.add_argument("--version", help="Show SCUTUM version and exit", action="store_true", default=False)
     args = parser.parse_args()
 
 
@@ -145,11 +147,21 @@ def processArguments():
 
 processArguments()
 
-log = Logger(LOGPATH)
 
-installer = Installer(CONFPATH)
 if not (args.enable or args.disable):
         printIcon()
+
+if args.version:
+    print("Current Version: " + VERSION)
+    print("Author: K4YT3X")
+    print("License: GNU GPL v3")
+    print("Github Page: https://github.com/K4YT3X/SCUTUM")
+    print("Contact: k4yt3x@protonmail.com")
+    exit(0)
+
+log = Logger(LOGPATH)
+installer = Installer(CONFPATH)
+
 if args.upgrade:
     installer.check_avalon()
     installer.check_version(VERSION)
