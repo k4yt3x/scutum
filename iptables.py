@@ -12,6 +12,7 @@ using ufw and iptables.
 This class is migrated from Project: DefenseMatrix
 """
 
+from installer import Installer
 import avalon_framework as avalon
 import ipaddress
 import os
@@ -36,10 +37,11 @@ class Ufw:
             FileNotFoundError -- raised when UFW not installed
         """
         self.log = log
+        installer = Installer()
         if not os.path.isfile('/usr/sbin/ufw'):  # Detect if ufw installed
             print(avalon.FM.BD + avalon.FG.R + '\nWe have detected that you don\'t have UFW installed!' + avalon.FM.RST)
             print('UFW Firewall function requires UFW to run')
-            if not self.sysInstallPackage("ufw"):
+            if not installer.sysInstallPackage("ufw"):
                 avalon.error("ufw is required for this function. Exiting...")
                 raise FileNotFoundError("File: \"/usr/sbin/ufw\" not found")
 
