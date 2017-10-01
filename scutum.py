@@ -166,20 +166,13 @@ try:
         if not os.path.isfile(CONFPATH):
             avalon.error('SCUTUM Config file not found! Please re-install SCUTUM!')
             avalon.warning('Please run "scutum --install" before using it for the first time')
-            exit()
+            exit(1)
 
         config = configparser.ConfigParser()
         config.read(CONFPATH)
         config.sections()
 
         interfaces = config["Interfaces"]["interfaces"].split(",")
-        if config["Iptables"]["enabled"] == "true":
-            iptablesEnabled = True
-        elif config["Iptables"]["enabled"] == "false":
-            iptablesEnabled = False
-        else:
-            raise KeyError
-
         networkControllers = config["networkControllers"]["controllers"]
 
     if args.install:
@@ -257,6 +250,7 @@ except KeyboardInterrupt:
 except KeyError:
     avalon.error('The program configuration file is broken for some reason')
     avalon.error('You should reinstall SCUTUM to repair the configuration file')
+    traceback.print_exc()
 except Exception as er:
     print()
     avalon.error("SCUTUM has encountered an error:")
