@@ -23,7 +23,7 @@
 Name: SCUTUM Firewall
 Author: K4T
 Date of Creation: March 8,2017
-Last Modified: Sep 30,2017
+Last Modified: Oct 3,2017
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -45,9 +45,8 @@ TODO:
  [x] Fix loggin format error
  [x] Fix options for iptables firewall
  [x] Create a requirements list
- [ ] Change SCUTUM GUI to adapt systemd
- [ ] Add dynamic inspection?
- [ ] Create .deb package
+ [x] Change SCUTUM GUI to adapt systemd
+ [x] Create .deb package
 
 """
 from __future__ import print_function
@@ -271,4 +270,4 @@ except Exception as e:
 finally:
     if not (args.purgelog or args.install or args.uninstall or os.getuid() != 0):
         log.writeLog(str(datetime.datetime.now()) + ' ---- FINISH ----\n\n')
-    exit(1)
+    exit(0)
