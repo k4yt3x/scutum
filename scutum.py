@@ -23,7 +23,7 @@
 Name: SCUTUM Firewall
 Author: K4T
 Date of Creation: March 8,2017
-Last Modified: Oct 3,2017
+Last Modified: Oct 8,2017
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -37,16 +37,6 @@ For WICD and Network-Manager
 
 For tutorial please look at the Github Page: https://github.com/K4YT3X/SCUTUM
 
-TODO:
- [x] Create different class for adapter controller
- [x] Create different class for Installer
- [x] Register SCUTUM as a systemd system service
- [x] Change the way configurations are being stored (configparser)
- [x] Fix loggin format error
- [x] Fix options for iptables firewall
- [x] Create a requirements list
- [x] Change SCUTUM GUI to adapt systemd
- [x] Create .deb package
 
 """
 from __future__ import print_function
@@ -102,7 +92,7 @@ except ImportError:
 
 LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
-VERSION = '2.6.0 beta 6'
+VERSION = '2.6.0 beta 8'
 
 
 # -------------------------------- Functions --------------------------------
@@ -148,7 +138,7 @@ processArguments()
 
 
 if not (args.enable or args.disable):
-        printIcon()
+    printIcon()
 
 if args.version:
     print("Current Version: " + VERSION)
@@ -185,7 +175,8 @@ try:
         config.sections()
 
         interfaces = config["Interfaces"]["interfaces"].split(",")
-        networkControllers = config["networkControllers"]["controllers"]
+        NetworkControllers = config["NetworkControllers"]["controllers"]
+        ufwHandled = config["Ufw"]["handled"]
 
     if args.install:
         avalon.info('Start Installing SCUTUM...')
@@ -206,6 +197,9 @@ try:
         log.writeLog(str(datetime.datetime.now()) + ' ---- START ----')
         os.system('arptables -P INPUT ACCEPT')
         os.system('arptables --flush')
+        if ufwHandled.lower() == "true":
+                ufwctrl = Ufw(log)
+                ufwctrl.disable()
         avalon.info('RST OK')
         log.writeLog(str(datetime.datetime.now()) + ' RESET OK')
     elif args.purgelog:
@@ -215,10 +209,10 @@ try:
     elif args.enable or args.disable:
         if args.enable:
             log.writeLog(str(datetime.datetime.now()) + " SCUTUM ENABLED")
-            if "wicd" in networkControllers.split(","):
+            if "wicd" in NetworkControllers.split(","):
                 installer.installWicdScripts()
-            if "NetworkManager" in networkControllers.split(","):
-                installer.installNMScripts(config["networkControllers"]["controllers"].split(","))
+            if "NetworkManager" in NetworkControllers.split(","):
+                installer.installNMScripts(config["NetworkControllers"]["controllers"].split(","))
             ifaceobjs = []  # a list to store internet controller objects
             os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
 
@@ -228,6 +222,10 @@ try:
 
             for interface in ifaceobjs:
                 interface.updateArpTables()
+
+            if ufwHandled.lower() == "true":
+                ufwctrl = Ufw(log)
+                ufwctrl.enable()
             avalon.info('OK')
         elif args.disable:
             log.writeLog(str(datetime.datetime.now()) + " SCUTUM DISABLED")
@@ -235,6 +233,9 @@ try:
             installer.removeWicdScripts()
             os.system('arptables -P INPUT ACCEPT')
             os.system('arptables --flush')
+            if ufwHandled.lower() == "true":
+                ufwctrl = Ufw(log)
+                ufwctrl.disable()
             avalon.info('RST OK')
     elif args.enablegeneric or args.disablegeneric:
         ufwctrl = Ufw(log)
@@ -252,6 +253,10 @@ try:
 
         for interface in ifaceobjs:
             interface.updateArpTables()
+
+        if ufwHandled.lower() == "true":
+                ufwctrl = Ufw(log)
+                ufwctrl.enable()
         avalon.info('OK')
 except KeyboardInterrupt:
     print('\n')

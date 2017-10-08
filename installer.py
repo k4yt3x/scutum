@@ -217,7 +217,8 @@ class Installer():
 
         config = configparser.ConfigParser()
         config["Interfaces"] = {}
-        config["networkControllers"] = {}
+        config["NetworkControllers"] = {}
+        config["Ufw"] = {}
 
         if os.path.islink(self.SCUTUM_BIN_FILE) or os.path.isfile(self.SCUTUM_BIN_FILE):
             os.remove(self.SCUTUM_BIN_FILE)  # Remove old file or symbolic links
@@ -290,14 +291,14 @@ class Installer():
                     avalon.error("SCUTUM Script for WICD has failed to install!")
                     avalon.error("Aborting Installation...")
                     exit(1)
-                config["networkControllers"]["controllers"] = "wicd"
+                config["NetworkControllers"]["controllers"] = "wicd"
                 break
             elif selection == '2':
                 if self.installNMScripts(ifacesSelected) is not True:
                     avalon.error("SCUTUM Script for NetworkManager has failed to install!")
                     avalon.error("Aborting Installation...")
                     exit(1)
-                config["networkControllers"]["controllers"] = "NetworkManager"
+                config["NetworkControllers"]["controllers"] = "NetworkManager"
                 break
             elif selection == '3':
                 ifaces = ["wicd", "NetworkManager"]
@@ -311,7 +312,7 @@ class Installer():
                     avalon.error("All SCUTUM Scripts have failed to install!")
                     avalon.error("Aborting Installation...")
                     exit(1)
-                config["networkControllers"]["controllers"] = ",".join(ifaces)
+                config["NetworkControllers"]["controllers"] = ",".join(ifaces)
                 break
             else:
                 avalon.error('Invalid Input!')
@@ -329,8 +330,15 @@ class Installer():
             else:
                 avalon.info("Okay. Then we will simply enable it for you")
                 ufwctrl.enable()
+
+            print("If you let SCUTUM handle UFW, then UFW will be activated and deactivated with SCUTUM")
+            if avalon.ask("Let SCUTUM handle UFW?", True):
+                config["Ufw"]["handled"] = "true"
+            else:
+                config["Ufw"]["handled"] = "false"
         else:
             avalon.info("You can turn it on whenever you change your mind")
+
 
         print(avalon.FM.BD + '\nInstall Easy TCP controllers?' + avalon.FM.RST)
         print("Easy tcp controller helps you open/close ports quickly")
