@@ -173,8 +173,8 @@ try:
         print(avalon.FG.LGR + 'It needs to control the system firewall so..' + avalon.FM.RST)
         exit(0)
     if not (args.purgelog or args.install or args.uninstall):
-        log.writeLog(str(datetime.datetime.now()) + ' ---- START ----\n')
-        log.writeLog(str(datetime.datetime.now()) + '  UID: ' + str(os.getuid()) + '\n')
+        log.writeLog(str(datetime.datetime.now()) + ' ---- START ----')
+        log.writeLog(str(datetime.datetime.now()) + '  UID: ' + str(os.getuid()))
         if not os.path.isfile(CONFPATH):
             avalon.error('SCUTUM Config file not found! Please re-install SCUTUM!')
             avalon.warning('Please run "scutum --install" before using it for the first time')
@@ -203,11 +203,11 @@ try:
             avalon.warning('Removal Canceled')
             exit(0)
     elif args.reset:
-        log.writeLog(str(datetime.datetime.now()) + ' ---- START ----\n')
+        log.writeLog(str(datetime.datetime.now()) + ' ---- START ----')
         os.system('arptables -P INPUT ACCEPT')
         os.system('arptables --flush')
         avalon.info('RST OK')
-        log.writeLog(str(datetime.datetime.now()) + ' RESET OK\n')
+        log.writeLog(str(datetime.datetime.now()) + ' RESET OK')
     elif args.purgelog:
         log.purge()
         avalon.info('LOG PURGE OK')
@@ -265,9 +265,9 @@ except Exception as e:
     avalon.error("SCUTUM has encountered an error:")
     traceback.print_exc()
     if os.getuid() == 0:
-        log.writeLog(str(datetime.datetime.now()) + ' -!-! ERROR !-!-\n')
+        log.writeLog(str(datetime.datetime.now()) + ' -!-! ERROR !-!-')
         log.writeLog(str(e) + '\n')
 finally:
     if not (args.purgelog or args.install or args.uninstall or os.getuid() != 0):
-        log.writeLog(str(datetime.datetime.now()) + ' ---- FINISH ----\n\n')
+        log.writeLog(str(datetime.datetime.now()) + ' ---- FINISH ----\n')
     exit(0)

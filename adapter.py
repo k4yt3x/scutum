@@ -112,8 +112,8 @@ class Adapter:
             if gatewayMac != '00:00:00:00:00:00' and len(gatewayMac) == 17:
                 break
             time.sleep(0.5)  # Be nice to CPU
-        self.log.writeLog(str(datetime.datetime.now()) + '  MAC: ' + gatewayMac + '\n')
-        self.log.writeLog(str(datetime.datetime.now()) + '  IP: ' + str(Adapter.getIP(self)) + '\n')
+        self.log.writeLog(str(datetime.datetime.now()) + '  MAC: ' + gatewayMac)
+        self.log.writeLog(str(datetime.datetime.now()) + '  IP: ' + str(Adapter.getIP(self)))
         os.system('arptables --flush')
         os.system('arptables -P INPUT DROP')
         os.system('arptables -A INPUT --source-mac ' + gatewayMac + ' -j ACCEPT')
