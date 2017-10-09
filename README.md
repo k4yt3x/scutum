@@ -3,9 +3,7 @@
 
 # SCUTUM Firewall
 
-#### Current Version: 2.6.0 beta 7
-
-### This is an UNSTABLE version
+#### Current Version: 2.6.1
 
 ~~**It is now recommended to upgrade scutum with --upgrade parameter** (since 2.5.2)~~  
 Never mind. Please run the installation below again manually.
@@ -33,6 +31,7 @@ $ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quic
 </br>
 
 #### Current Version Change log:
+1. UFW can now be managed with SCUTUM
 1. Fixed some logger issues
 1. A LOT of other small improvements (eg. documentations)
 1. Fixed & Improved the Installation Mathod
@@ -47,12 +46,8 @@ $ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quic
 ![scutum_gui](https://user-images.githubusercontent.com/21986859/29802954-bb3475f2-8c46-11e7-8c21-efae476ac5a6.png)
 
 #### TODO:
-1. Change SCUTUM GUI to adapt systemd
-1. Create .deb package
-1. Add dynamic inspection?
-1. Fix loggin format error
-1. Fix options for iptables firewall
-
+1. Fix self-upgrade feature
+1. Create 2.6.1 Release for Debian
 
 #### Recent Changes:
 1. Added Self-Upgrading Function, now users can execute self-upgrading with $ sudo scutum --upgrade

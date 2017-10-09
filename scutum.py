@@ -21,9 +21,9 @@
 
 
 Name: SCUTUM Firewall
-Author: K4T
+Author: K4YT3X
 Date of Creation: March 8,2017
-Last Modified: Oct 8,2017
+Last Modified: Oct 9,2017
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -37,6 +37,10 @@ For WICD and Network-Manager
 
 For tutorial please look at the Github Page: https://github.com/K4YT3X/SCUTUM
 
+
+TODO:
+[ ] Fix self-upgrade feature
+[ ] Create 2.6.1 Release for Debian
 
 """
 from __future__ import print_function
@@ -92,7 +96,7 @@ except ImportError:
 
 LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
-VERSION = '2.6.0 beta 8'
+VERSION = '2.6.1'
 
 
 # -------------------------------- Functions --------------------------------
