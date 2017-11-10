@@ -10,6 +10,8 @@ Description: This class controls TCP/UDP/ICMP traffic
 using ufw and iptables.
 
 This class is migrated from Project: DefenseMatrix
+
+Version 1.3
 """
 
 import avalon_framework as avalon
