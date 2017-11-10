@@ -5,8 +5,11 @@
 
 #### Current Version: 2.6.1
 
-~~**It is now recommended to upgrade scutum with --upgrade parameter** (since 2.5.2)~~  
-Never mind. Please run the installation below again manually.
+**For versions before 2.6.0, please run the installation again manually  
+For versions after 2.6.0, run scutum with "--upgrade" parameter to upgrade**
+~~~~
+$ sudo scutum --upgrade
+~~~~
 
 <br>
 

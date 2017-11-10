@@ -32,6 +32,13 @@ class Installer():
         os.system("update-rc.d scutum start 10 2 3 4 5 . stop 90 0 1 6 .")
 
     def check_version(self, VERSION):
+        """
+        Arguments:
+            VERSION {string} -- version number
+
+        Returns:
+            string -- server version number
+        """
         avalon.info(avalon.FM.RST + 'Checking SCUTUM Version...')
         with urllib.request.urlopen('https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/scutum.py') as response:
             html = response.read().decode().split('\n')
@@ -51,6 +58,10 @@ class Installer():
         return server_version
 
     def check_avalon(self):
+        """
+        Check avalon version and update avalon_framework
+        if necessary
+        """
         avalon.info(avalon.FM.RST + 'Checking AVALON Framework Version...')
         avalonVersionCheck = subprocess.Popen(["pip3", "freeze"], stdout=subprocess.PIPE).communicate()[0]
         pipOutput = avalonVersionCheck.decode().split('\n')
@@ -338,7 +349,6 @@ class Installer():
                 config["Ufw"]["handled"] = "false"
         else:
             avalon.info("You can turn it on whenever you change your mind")
-
 
         print(avalon.FM.BD + '\nInstall Easy TCP controllers?' + avalon.FM.RST)
         print("Easy tcp controller helps you open/close ports quickly")
