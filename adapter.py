@@ -8,6 +8,8 @@ Last Modified: Oct 8, 2017
 
 Description: This class controls all system configuring activities
 ex. set arptables, set iptables, etc.
+
+Version 1.0
 """
 
 from installer import Installer
