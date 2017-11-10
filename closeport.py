@@ -9,6 +9,8 @@ Last Modified: Sep 28, 2017
 Description: This script closes oprts on UFW Firewall
 
 This class is migrated from Project: DefenseMatrix
+
+Version 1.1
 """
 
 from iptables import Ufw
