@@ -9,6 +9,8 @@ Last Modified: Sep 30, 2017
 Description: Handles all the logging actions
 
 This class is migrated from Project: DefenseMatrix
+
+Version 1.2
 """
 import datetime
 import os

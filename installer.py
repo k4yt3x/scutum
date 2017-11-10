@@ -8,6 +8,8 @@ Last Modified: Sep 30, 2017
 
 Description: Handles the installation, removal, configuring and
 upgrading for SCUTUM
+
+Version 1.2
 """
 from iptables import Ufw
 import avalon_framework as avalon
