@@ -38,9 +38,10 @@ For WICD and Network-Manager
 For tutorial please look at the Github Page: https://github.com/K4YT3X/SCUTUM
 
 
-TODO:
-[ ] Fix self-upgrade feature
-[ ] Create 2.6.1 Release for Debian
+KNOWN ISSUES:
+1. If the service is started manually when connecting to
+a network, the command will hang until the Internet is connected
+(when an IP address is assigned, when gateway address is defined)
 
 """
 from __future__ import print_function
@@ -63,13 +64,17 @@ except ImportError:
         if len(install) == 0 or install[0].upper() == 'Y':
             try:
                 if os.path.isfile('/usr/bin/pip3'):
+                    # Try installing with installed pip
                     print('Installing using method 1')
                     os.system('pip3 install avalon_framework')
                 elif os.path.isfile('/usr/bin/wget'):
+                    # Try downloading pip from bootstrap and install avalon
+                    # framework
                     print('Installing using method 2')
                     os.system('wget -O - https://bootstrap.pypa.io/get-pip.py | python3')
                     os.system('pip3 install avalon_framework')
                 else:
+                    # download script with urllib.request if wget is not present
                     print('Installing using method 3')
                     # import urllib.request
                     content = urllib.request.urlopen('https://bootstrap.pypa.io/get-pip.py')
@@ -86,7 +91,7 @@ except ImportError:
             print('\033[32mInstallation Succeed!\033[0m')
             print('\033[32mPlease restart the program\033[0m')
             exit(0)
-        elif install[0].upper() == 'N':
+        elif install[0].upper() == 'N':  # if the user choose not to install
             print('\033[31m\033[1mSCUTUMM requires avalon framework to run!\033[0m')
             print('\033[33mAborting..\033[0m')
             exit(0)
@@ -96,13 +101,19 @@ except ImportError:
 
 LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
-VERSION = '2.6.1'
+
+# This is the master version number
+VERSION = '2.6.2'
 
 
 # -------------------------------- Functions --------------------------------
 
 
 def printIcon():
+    """Print SCUTUM icon
+
+    Credits goes to messletters.com
+    """
     print(avalon.FM.BD + '     ___   __  _  _  ____  _  _  __  __' + avalon.FM.RST)
     print(avalon.FM.BD + '    / __) / _)( )( )(_  _)( )( )(  \/  )' + avalon.FM.RST)
     print(avalon.FM.BD + '    \__ \( (_  )()(   )(   )()(  )    (' + avalon.FM.RST)
@@ -113,8 +124,18 @@ def printIcon():
 
 
 def processArguments():
-    """
-    This function parses all arguments
+    """This function parses all arguments
+
+    There are three groups of arguments.
+
+    The first group is controls group which directly controls the
+    firewall.
+
+    The second group, Installation group, controls the installation,
+    uninstallation and upgrading of scutum
+
+    The last groups, Extra, contains only a version function
+    for now.
     """
     global args
     parser = argparse.ArgumentParser()
@@ -144,7 +165,7 @@ processArguments()
 if not (args.enable or args.disable):
     printIcon()
 
-if args.version:
+if args.version:  # prints program legal / dev / version info
     print("Current Version: " + VERSION)
     print("Author: K4YT3X")
     print("License: GNU GPL v3")
@@ -167,22 +188,27 @@ try:
         print(avalon.FG.LGR + 'It needs to control the system firewall so..' + avalon.FM.RST)
         exit(0)
     if not (args.purgelog or args.install or args.uninstall):
+        # if program is doing normal operations, log everything
+        # pointless if purging log, installing/removing
         log.writeLog(str(datetime.datetime.now()) + ' ---- START ----')
         log.writeLog(str(datetime.datetime.now()) + '  UID: ' + str(os.getuid()))
-        if not os.path.isfile(CONFPATH):
-            avalon.error('SCUTUM Config file not found! Please re-install SCUTUM!')
+        if not os.path.isfile(CONFPATH):  # Configuration not found
+            avalon.error('SCUTUM configuration file not found! Please re-install SCUTUM!')
             avalon.warning('Please run "scutum --install" before using it for the first time')
             exit(1)
 
+        # Initialize python confparser and read config
         config = configparser.ConfigParser()
         config.read(CONFPATH)
         config.sections()
 
+        # Read sections from the configuration file
         interfaces = config["Interfaces"]["interfaces"].split(",")
         NetworkControllers = config["NetworkControllers"]["controllers"]
         ufwHandled = config["Ufw"]["handled"]
 
     if args.install:
+        # Install scutum into system
         avalon.info('Start Installing SCUTUM...')
         installer.install()
         print('\n' + avalon.FM.BD, end='')
@@ -192,12 +218,16 @@ try:
         avalon.info("You can also control it manually with \"scutum\" command")
         exit(0)
     elif args.uninstall:
+        # Removes scutum completely from the system
+        # Note that the configuration file will be removed too
         if avalon.ask('Removal Confirm: ', False):
             installer.removeScutum()
         else:
             avalon.warning('Removal Canceled')
             exit(0)
     elif args.reset:
+        # resets the arptable, ufw and accept all incoming connections
+        # This will expose the computer entirely on the network
         log.writeLog(str(datetime.datetime.now()) + ' ---- START ----')
         os.system('arptables -P INPUT ACCEPT')
         os.system('arptables --flush')
@@ -207,11 +237,15 @@ try:
         avalon.info('RST OK')
         log.writeLog(str(datetime.datetime.now()) + ' RESET OK')
     elif args.purgelog:
+        # Deletes the log file of scutum
+        # TODO: delete rotated logs too
         log.purge()
         avalon.info('LOG PURGE OK')
         exit(0)
     elif args.enable or args.disable:
         if args.enable:
+            # Enable scutum will write scrips for wicd and network-manager
+            # scutum will be started automatically
             log.writeLog(str(datetime.datetime.now()) + " SCUTUM ENABLED")
             if "wicd" in NetworkControllers.split(","):
                 installer.installWicdScripts()
@@ -225,13 +259,20 @@ try:
                 ifaceobjs.append(interface)
 
             for interface in ifaceobjs:
+                # TODO: pass this operation to background
+                # to prevent the halt if scutum is enabled
+                # during attempting to connect to a network
                 interface.updateArpTables()
 
             if ufwHandled.lower() == "true":
+                # if ufw is handled by scutum, enable it
                 ufwctrl = Ufw(log)
                 ufwctrl.enable()
             avalon.info('OK')
         elif args.disable:
+            # This will disable scutum entirely and ufw too if it
+            # is handled by scutum. scutum will not be started automatically
+            # Firewalls will be reseted and expose the computer completely
             log.writeLog(str(datetime.datetime.now()) + " SCUTUM DISABLED")
             installer.removeNMScripts()
             installer.removeWicdScripts()
@@ -242,6 +283,8 @@ try:
                 ufwctrl.disable()
             avalon.info('RST OK')
     elif args.enablegeneric or args.disablegeneric:
+        # you can choose to make scutum to handle ufw
+        # after the installation
         ufwctrl = Ufw(log)
         if args.enablegeneric:
             ufwctrl.enable()
@@ -265,18 +308,19 @@ try:
 except KeyboardInterrupt:
     print('\n')
     avalon.warning('^C Pressed! Exiting...')
-except KeyError:
+except KeyError:  # configuration section(s) missing
     avalon.error('The program configuration file is broken for some reason')
     avalon.error('You should reinstall SCUTUM to repair the configuration file')
     traceback.print_exc()
 except Exception as e:
     print()
     avalon.error("SCUTUM has encountered an error:")
-    traceback.print_exc()
+    traceback.print_exc()  # TODO: write this into the log
     if os.getuid() == 0:
         log.writeLog(str(datetime.datetime.now()) + ' -!-! ERROR !-!-')
         log.writeLog(str(e) + '\n')
 finally:
+    # write and close the log before exiting
     if not (args.purgelog or args.install or args.uninstall or os.getuid() != 0):
         log.writeLog(str(datetime.datetime.now()) + ' ---- FINISH ----\n')
     exit(0)
