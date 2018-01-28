@@ -1,0 +1,17 @@
+[Unit]
+Description=Scutum service file
+ConditionPathExists=/usr/share/scutum
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=scutum --enable
+ExecStop=scutum --disable
+ExecReload=scutum --reset && scutum --enable
+TimeoutSec=0
+StandardOutput=tty
+RemainAfterExit=yes
+SysVStartPriority=99
+
+[Install]
+WantedBy=multi-user.target
