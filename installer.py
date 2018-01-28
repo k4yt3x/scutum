@@ -22,19 +22,37 @@ import urllib.response
 
 class Installer():
 
-    def __init__(self, CONFPATH="/etc/scutum.conf"):
+    def __init__(self, CONFPATH="/etc/scutum.conf", INSTALL_DIR="/usr/share/scutum"):
         self.SCUTUM_BIN_FILE = "/usr/bin/scutum"
-        self.INSTALL_DIR = "/usr/share/scutum"
         self.CONFPATH = CONFPATH
+        self.INSTALL_DIR = INSTALL_DIR
+        self.INSTALLER_DIR = os.path.dirname(os.path.realpath(__file__))
 
     def install_service(self):
         if os.path.isdir("/etc/init.d/"):
-            shutil.copyfile("/usr/share/scutum/scutum", "/etc/init.d/scutum")
+            """
+            This is for debian-based systems. On debian, only an executable
+            script/file is needed. This file is usually in /etc/inid.d/ and
+            registered with update-rc.d. The service (unit) files will be
+            created automagically.
+            """
+            shutil.copyfile(self.INSTALL_DIR + "/scutum", "/etc/init.d/scutum")
             os.system("chmod 755 /etc/init.d/scutum")
             os.system("update-rc.d scutum defaults")
+            # runlevels are now defined in the executable files in newer versions
+            # of systemd. Keeping this line for older systems
             os.system("update-rc.d scutum start 10 2 3 4 5 . stop 90 0 1 6 .")
         elif os.path.isdir("/usr/lib/systemd"):
-            shutil.copyfile("/usr/share/scutum/scutum.service", "/usr/lib/systemd/system/scutum.service")
+            """
+            This is for the old-fashion systemds. In old (maybe I'm wrong)
+            systemds, unit files are created manually. They are stored in
+            /usr/lib/systemd/system/ folder. systemctl command will look
+            for service files in that folder.
+            """
+            shutil.copyfile(self.INSTALL_DIR + "/scutum.service", "/usr/lib/systemd/system/scutum.service")
+            if os.path.islink("/etc/systemd/system/multi-user.target.wants/scutum.service"):
+                # Let's just remove it in case of program structure update.
+                os.remove("/etc/systemd/system/multi-user.target.wants/scutum.service")
             os.system("ln -s /usr/lib/systemd/system/scutum.service /etc/systemd/system/multi-user.target.wants/scutum.service")
 
     def check_version(self, VERSION):
@@ -93,15 +111,26 @@ class Installer():
             avalon.info('AVALON Framework is already on the newest version')
 
     def sysInstallPackage(self, package):
+        """Install a package using the system package manager
+
+        This method will look for available system package managers
+        and install the package using package manager.
+
+        Arguments:
+            package {string} -- the name of the package to install
+
+        Returns:
+            bool -- true if installed successfully
+        """
         if avalon.ask('Install ' + package + '?', True):
             if os.path.isfile('/usr/bin/apt'):
-                os.system('apt update && apt install ' + package + ' -y')  # install arptables with apt
+                os.system('apt update && apt install ' + package + ' -y')  # install the package with apt
                 return True
             elif os.path.isfile('/usr/bin/yum'):
-                os.system('yum install ' + package + ' -y')  # install arptables with yum
+                os.system('yum install ' + package + ' -y')  # install the package with yum
                 return True
             elif os.path.isfile('/usr/bin/pacman'):
-                os.system('pacman -S ' + package + ' --noconfirm')  # install arptables with pacman
+                os.system('pacman -S ' + package + ' --noconfirm')  # install the package with pacman
                 return True
             else:
                 avalon.error('Sorry, we can\'t find a package manager that we currently support. Aborting..')
@@ -203,7 +232,7 @@ class Installer():
         self.removeNMScripts()
 
         try:
-            shutil.rmtree("/usr/share/scutum")
+            shutil.rmtree(self.INSTALL_DIR)
         except FileNotFoundError:
             pass
         avalon.info('SCUTUM successfully removed!')
@@ -236,6 +265,18 @@ class Installer():
         config["Interfaces"] = {}
         config["NetworkControllers"] = {}
         config["Ufw"] = {}
+
+        print(avalon.FM.BD + "Choose Installation Directory (Enter for default)" + avalon.FM.RST)
+        installation_dir = avalon.gets("Choose Installation Path (\"/usr/share/scutum\"):")
+        if installation_dir.strip(" ") != "" and installation_dir[-1] == "/":
+            self.INSTALL_DIR = installation_dir[0:-1]  # strip last "/" if exists. breaks program path format
+        elif installation_dir.strip(" ") != "":
+            self.INSTALL_DIR = installation_dir
+
+        if self.INSTALLER_DIR != self.INSTALL_DIR:
+            if os.path.isdir(self.INSTALL_DIR):
+                shutil.rmtree(self.INSTALL_DIR)  # delete existing old scutum files
+            shutil.copytree(self.INSTALLER_DIR, self.INSTALL_DIR)
 
         if os.path.islink(self.SCUTUM_BIN_FILE) or os.path.isfile(self.SCUTUM_BIN_FILE):
             os.remove(self.SCUTUM_BIN_FILE)  # Remove old file or symbolic links
