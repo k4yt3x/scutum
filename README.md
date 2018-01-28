@@ -3,7 +3,7 @@
 
 # SCUTUM Firewall
 
-#### Current Version: 2.6.1
+#### Current Version: 2.6.3
 
 **For versions before 2.6.0, please run the installation again manually  
 For versions after 2.6.0, run scutum with "--upgrade" parameter to upgrade**
@@ -34,6 +34,15 @@ $ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quic
 </br>
 
 #### Current Version Change log:
+1. Added support for a different type of systemd
+1. User can now select the installation path
+
+![scutum_gui](https://user-images.githubusercontent.com/21986859/29802954-bb3475f2-8c46-11e7-8c21-efae476ac5a6.png)
+
+#### TODO:
+1. Fix self-upgrade feature
+
+#### Recent Changes:
 1. UFW can now be managed with SCUTUM
 1. Fixed some logger issues
 1. A LOT of other small improvements (eg. documentations)
@@ -45,14 +54,6 @@ $ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quic
 1. Created different class for Installer
 1. Registers SCUTUM as a systemd system service
 1. Changed the way configurations are being stored (configparser)
-
-![scutum_gui](https://user-images.githubusercontent.com/21986859/29802954-bb3475f2-8c46-11e7-8c21-efae476ac5a6.png)
-
-#### TODO:
-1. Fix self-upgrade feature
-1. Create 2.6.1 Release for Debian
-
-#### Recent Changes:
 1. Added Self-Upgrading Function, now users can execute self-upgrading with $ sudo scutum --upgrade
 1. Added AVALON Framework Self-Upgrading function (included when using "--upgrade" parameter)
 1. Interfaces are now controlled by a new interface controller class
