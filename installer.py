@@ -354,6 +354,7 @@ class Installer():
             else:
                 config["Ufw"]["handled"] = "false"
         else:
+            config["Ufw"]["handled"] = "false"
             avalon.info("You can turn it on whenever you change your mind")
 
         print(avalon.FM.BD + '\nInstall Easy TCP controllers?' + avalon.FM.RST)
