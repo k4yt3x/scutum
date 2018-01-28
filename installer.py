@@ -9,7 +9,7 @@ Last Modified: Sep 30, 2017
 Description: Handles the installation, removal, configuring and
 upgrading for SCUTUM
 
-Version 1.2
+Version 1.3
 """
 from iptables import Ufw
 import avalon_framework as avalon
@@ -270,8 +270,12 @@ class Installer():
         installation_dir = avalon.gets("Choose Installation Path (\"/usr/share/scutum\"):")
         if installation_dir.strip(" ") != "" and installation_dir[-1] == "/":
             self.INSTALL_DIR = installation_dir[0:-1]  # strip last "/" if exists. breaks program path format
+            avalon.info("Changed installation directory to: {}{}{}".format(avalon.FM.BD, self.INSTALL_DIR, avalon.FM.RST))
         elif installation_dir.strip(" ") != "":
             self.INSTALL_DIR = installation_dir
+            avalon.info("Changed installation directory to: {}{}{}".format(avalon.FM.BD, self.INSTALL_DIR, avalon.FM.RST))
+        else:
+            avalon.info("Using default installation directory: {}{}{}".format(avalon.FM.BD, self.INSTALL_DIR, avalon.FM.RST))
 
         if self.INSTALLER_DIR != self.INSTALL_DIR:
             if os.path.isdir(self.INSTALL_DIR):
