@@ -103,7 +103,7 @@ LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
 
 # This is the master version number
-VERSION = '2.6.2'
+VERSION = '2.6.3'
 
 
 # -------------------------------- Functions --------------------------------
