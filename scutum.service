@@ -5,9 +5,9 @@ Wants=network.target
 
 [Service]
 Type=simple
-ExecStart=scutum --enable
-ExecStop=scutum --disable
-ExecReload=scutum --reset && scutum --enable
+ExecStart=/usr/bin/env scutum --enable
+ExecStop=/usr/bin/env scutum --disable
+ExecReload=/usr/bin/env scutum --reset && scutum --enable
 TimeoutSec=0
 StandardOutput=tty
 RemainAfterExit=yes
