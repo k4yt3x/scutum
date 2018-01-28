@@ -28,10 +28,14 @@ class Installer():
         self.CONFPATH = CONFPATH
 
     def install_service(self):
-        shutil.copyfile("/usr/share/scutum/scutum", "/etc/init.d/scutum")
-        os.system("chmod 755 /etc/init.d/scutum")
-        os.system("update-rc.d scutum defaults")
-        os.system("update-rc.d scutum start 10 2 3 4 5 . stop 90 0 1 6 .")
+        if os.path.isdir("/etc/init.d/"):
+            shutil.copyfile("/usr/share/scutum/scutum", "/etc/init.d/scutum")
+            os.system("chmod 755 /etc/init.d/scutum")
+            os.system("update-rc.d scutum defaults")
+            os.system("update-rc.d scutum start 10 2 3 4 5 . stop 90 0 1 6 .")
+        elif os.path.isdir("/usr/lib/systemd"):
+            shutil.copyfile("/usr/share/scutum/scutum.service", "/usr/lib/systemd/system/scutum.service")
+            os.system("ln -s /usr/lib/systemd/system/scutum.service /etc/systemd/system/multi-user.target.wants/scutum.service")
 
     def check_version(self, VERSION):
         """
