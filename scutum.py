@@ -28,7 +28,7 @@ Last Modified: Oct 9,2017
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
 
-(C) 2016 - 2017 K4YT3X
+(C) 2016 - 2018 K4YT3X
 
 Description: SCUTUM is a firewall designed for personal computers that mainly
 focuses on ARP defensing
