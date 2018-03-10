@@ -204,7 +204,7 @@ class Installer():
             for iface in interfaces:
                 nmScript.write("if interface == \"{}\":\n".format(iface))
                 nmScript.write("    if status == \"up\":\n")
-                nmScript.write("        os.system(\"scutum -i {}\")\n".format(iface))
+                nmScript.write("        os.system(\"scutum\")\n".format(iface))
                 nmScript.write("        exit(0)\n")
                 nmScript.write("\n")
             nmScript.close()
