@@ -103,7 +103,7 @@ LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
 
 # This is the master version number
-VERSION = '2.6.4'
+VERSION = '2.6.5'
 
 
 # -------------------------------- Functions --------------------------------
@@ -302,6 +302,13 @@ try:
 
             for interface in ifaceobjs:
                 interface.updateArpTables()
+
+            os.system('arptables --flush')
+
+            for interface in ifaceobjs:
+                if interface.gatewayMac:
+                    os.system('arptables -P INPUT DROP')
+                    os.system('arptables -A INPUT --source-mac ' + interface.gatewayMac + ' -j ACCEPT')
         else:
             interface = Adapter(args.interface, log)
             interface.updateArpTables()
