@@ -103,7 +103,7 @@ LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
 
 # This is the master version number
-VERSION = '2.6.3'
+VERSION = '2.6.4'
 
 
 # -------------------------------- Functions --------------------------------
@@ -140,6 +140,7 @@ def processArguments():
     global args
     parser = argparse.ArgumentParser()
     control_group = parser.add_argument_group('Controls')
+    control_group.add_argument("-i", "--interface", help="Run SCUTUM on specified interface", action="store", default=False)
     control_group.add_argument("--start", help="Enable SCUTUM once before shutdown", action="store_true", default=False)
     control_group.add_argument("--enable", help="Enable SCUTUM", action="store_true", default=False)
     control_group.add_argument("--disable", help="Disable SCUTUM", action="store_true", default=False)
@@ -294,11 +295,15 @@ try:
         ifaceobjs = []  # a list to store internet controller objects
         os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
 
-        for interface in interfaces:
-            interface = Adapter(interface, log)
-            ifaceobjs.append(interface)
+        if not args.interface:
+            for interface in interfaces:
+                interface = Adapter(interface, log)
+                ifaceobjs.append(interface)
 
-        for interface in ifaceobjs:
+            for interface in ifaceobjs:
+                interface.updateArpTables()
+        else:
+            interface = Adapter(args.interface, log)
             interface.updateArpTables()
 
         if ufwHandled.lower() == "true":
