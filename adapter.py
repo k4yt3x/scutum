@@ -9,7 +9,7 @@ Last Modified: Oct 8, 2017
 Description: This class controls all system configuring activities
 ex. set arptables, set iptables, etc.
 
-Version 1.0
+Version 1.1
 """
 
 from installer import Installer
@@ -38,6 +38,7 @@ class Adapter:
             FileNotFoundError -- raised when arptables not installed
         """
         self.log = log
+        self.gatewayMac = False
         if log is False:
             from logger import Logger
             self.log = Logger()
@@ -94,13 +95,22 @@ class Adapter:
                     return ipv4_address
         return False
 
+    def isUp(self):
+        with open("/sys/class/net/{}/operstate".format(self.interface), "r") as state:
+            for line in state:
+                if "up" in line.lower():
+                    return True
+        return False
+
     def updateArpTables(self):
         """
         This function adds the gateway's mac address into
         arptable's whitelist
         """
+        if not self.isUp():
+            return
         while True:  # Wait Until Gateway ARP is cached
-            gatewayMac = str(Adapter.getGatewayMac(self))
+            self.gatewayMac = str(Adapter.getGatewayMac(self))
             # os.system('nslookup google.ca')  # Works as well as the following
             try:
                 ac = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -111,11 +121,8 @@ class Adapter:
             except Exception:
                 pass
             # Check if it's a valid MAC Address
-            if gatewayMac != '00:00:00:00:00:00' and len(gatewayMac) == 17:
+            if self.gatewayMac != '00:00:00:00:00:00' and len(self.gatewayMac) == 17:
                 break
             time.sleep(0.5)  # Be nice to CPU
-        self.log.writeLog(str(datetime.datetime.now()) + '  MAC: ' + gatewayMac)
+        self.log.writeLog(str(datetime.datetime.now()) + '  MAC: ' + self.gatewayMac)
         self.log.writeLog(str(datetime.datetime.now()) + '  IP: ' + str(Adapter.getIP(self)))
-        os.system('arptables --flush')
-        os.system('arptables -P INPUT DROP')
-        os.system('arptables -A INPUT --source-mac ' + gatewayMac + ' -j ACCEPT')
