@@ -4,12 +4,12 @@
 Name: SCUTUM Installer Class
 Author: K4YT3X
 Date Created: Sep 26, 2017
-Last Modified: Sep 30, 2017
+Last Modified: Mar 10, 2018
 
 Description: Handles the installation, removal, configuring and
 upgrading for SCUTUM
 
-Version 1.4
+Version 1.5
 """
 from iptables import Ufw
 import avalon_framework as avalon
@@ -186,25 +186,27 @@ class Installer():
                 avalon.warning('Aborting installation for NetworkManager')
                 return False
         with open('/etc/NetworkManager/dispatcher.d/scutum', 'w') as nmScript:
-            nmScript.write("#!/bin/bash\n")
-            nmScript.write(" \n")
-            nmScript.write("IF=$1\n")
-            nmScript.write("STATUS=$2\n")
-            nmScript.write(" \n")
+            nmScript.write("#!/usr/bin/env python3\n")
+            nmScript.write("\n")
+            nmScript.write("import sys\n")
+            nmScript.write("import os\n")
+            nmScript.write("\n")
+            nmScript.write("try:\n")
+            nmScript.write("    interface = sys.argv[1]\n")
+            nmScript.write("    status = sys.argv[2]\n")
+            nmScript.write("except IndexError:\n")
+            nmScript.write("    exit(0)\n")
+            nmScript.write("\n")
+            nmScript.write("if status == \"down\":\n")
+            nmScript.write("    os.system(\"scutum --reset\")\n")
+            nmScript.write("    exit(0)\n")
+            nmScript.write("\n")
             for iface in interfaces:
-                nmScript.write("if [ \"$IF\" == \"" + iface + "\" ]\n")
-                nmScript.write("then\n")
-                nmScript.write("    case \"$2\" in\n")
-                nmScript.write("        up)\n")
-                nmScript.write("        scutum\n")
-                nmScript.write("        ;;\n")
-                nmScript.write("        down)\n")
-                nmScript.write("        scutum --reset\n")
-                nmScript.write("        ;;\n")
-                nmScript.write("        *)\n")
-                nmScript.write("        ;;\n")
-                nmScript.write("    esac\n")
-                nmScript.write("fi\n")
+                nmScript.write("if interface == \"{}\":\n".format(iface))
+                nmScript.write("    if status == \"up\":\n")
+                nmScript.write("        os.system(\"scutum -i {}\")\n".format(iface))
+                nmScript.write("        exit(0)\n")
+                nmScript.write("\n")
             nmScript.close()
 
         os.system('chown root: /etc/NetworkManager/dispatcher.d/scutum')
