@@ -102,7 +102,7 @@ class Adapter:
                     return True
         return False
 
-    def updateArpTables(self):
+    def updateGatewayAddrs(self):
         """
         This function adds the gateway's mac address into
         arptable's whitelist

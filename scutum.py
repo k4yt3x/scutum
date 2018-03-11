@@ -103,7 +103,7 @@ LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
 
 # This is the master version number
-VERSION = '2.6.5'
+VERSION = '2.6.6'
 
 
 # -------------------------------- Functions --------------------------------
@@ -156,6 +156,41 @@ def processArguments():
     etc = parser.add_argument_group('Extra')
     etc.add_argument("--version", help="Show SCUTUM version and exit", action="store_true", default=False)
     args = parser.parse_args()
+
+
+def update_arptables():
+    """operates arptables directly and
+    locks gateway mac addresses
+
+    This function creates an instance for each handled
+    adapter and updates it's corresponded gateway mac
+    address into arptables.
+    """
+
+    # reset arptables, removing all rules and
+    # accept all incoming packages
+    os.system('arptables --flush')
+
+    if args.interface:
+        interface = Adapter(args.interface, log)
+        interface.updateGatewayAddrs()
+        if interface.gatewayMac:
+            os.system('arptables -P INPUT DROP')
+            os.system('arptables -A INPUT --source-mac ' + interface.gatewayMac + ' -j ACCEPT')
+    else:
+        # Create one instance for each adapter
+        for interface in interfaces:
+            interface = Adapter(interface, log)
+            ifaceobjs.append(interface)
+
+        # make each adapter update gateway mac address
+        for interface in ifaceobjs:
+            interface.updateGatewayAddrs()
+
+        for interface in ifaceobjs:
+            if interface.gatewayMac:
+                os.system('arptables -P INPUT DROP')
+                os.system('arptables -A INPUT --source-mac ' + interface.gatewayMac + ' -j ACCEPT')
 
 
 # -------------------------------- Execute --------------------------------
@@ -255,15 +290,7 @@ try:
             ifaceobjs = []  # a list to store internet controller objects
             os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
 
-            for interface in interfaces:
-                interface = Adapter(interface, log)
-                ifaceobjs.append(interface)
-
-            for interface in ifaceobjs:
-                # TODO: pass this operation to background
-                # to prevent the halt if scutum is enabled
-                # during attempting to connect to a network
-                interface.updateArpTables()
+            update_arptables()
 
             if ufwHandled.lower() == "true":
                 # if ufw is handled by scutum, enable it
@@ -295,23 +322,7 @@ try:
         ifaceobjs = []  # a list to store internet controller objects
         os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
 
-        if not args.interface:
-            for interface in interfaces:
-                interface = Adapter(interface, log)
-                ifaceobjs.append(interface)
-
-            for interface in ifaceobjs:
-                interface.updateArpTables()
-
-            os.system('arptables --flush')
-
-            for interface in ifaceobjs:
-                if interface.gatewayMac:
-                    os.system('arptables -P INPUT DROP')
-                    os.system('arptables -A INPUT --source-mac ' + interface.gatewayMac + ' -j ACCEPT')
-        else:
-            interface = Adapter(args.interface, log)
-            interface.updateArpTables()
+        update_arptables()
 
         if ufwHandled.lower() == "true":
                 ufwctrl = Ufw(log)
