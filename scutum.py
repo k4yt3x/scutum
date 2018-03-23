@@ -137,7 +137,6 @@ def processArguments():
     The last groups, Extra, contains only a version function
     for now.
     """
-    global args
     parser = argparse.ArgumentParser()
     control_group = parser.add_argument_group('Controls')
     control_group.add_argument("-i", "--interface", help="Run SCUTUM on specified interface", action="store", default=False)
@@ -155,7 +154,7 @@ def processArguments():
     inst_group.add_argument("--upgrade", help="Check SCUTUM & AVALON Framework Updates", action="store_true", default=False)
     etc = parser.add_argument_group('Extra')
     etc.add_argument("--version", help="Show SCUTUM version and exit", action="store_true", default=False)
-    args = parser.parse_args()
+    return parser.parse_args()
 
 
 def update_arptables():
@@ -195,7 +194,7 @@ def update_arptables():
 
 # -------------------------------- Execute --------------------------------
 
-processArguments()
+args = processArguments()
 
 
 if not (args.enable or args.disable):
