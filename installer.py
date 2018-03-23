@@ -9,7 +9,7 @@ Last Modified: Mar 10, 2018
 Description: Handles the installation, removal, configuring and
 upgrading for SCUTUM
 
-Version 1.6
+Version 1.7
 """
 from iptables import Ufw
 import avalon_framework as avalon
@@ -201,12 +201,9 @@ class Installer():
             nmScript.write("    os.system(\"scutum --reset\")\n")
             nmScript.write("    exit(0)\n")
             nmScript.write("\n")
-            for iface in interfaces:
-                nmScript.write("if interface == \"{}\":\n".format(iface))
-                nmScript.write("    if status == \"up\":\n")
-                nmScript.write("        os.system(\"scutum\")\n".format(iface))
-                nmScript.write("        exit(0)\n")
-                nmScript.write("\n")
+            nmScript.write("if status == \"up\":\n")
+            nmScript.write("    os.system(\"scutum\")\n")
+            nmScript.write("    exit(0)\n")
             nmScript.close()
 
         os.system('chown root: /etc/NetworkManager/dispatcher.d/scutum')
