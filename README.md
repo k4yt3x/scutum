@@ -3,7 +3,7 @@
 
 # SCUTUM Firewall
 
-#### Current Version: 2.6.6
+#### Current Version: 2.6.7
 
 **For versions before 2.6.0, please run the installation again manually  
 For versions after 2.6.0, run scutum with "--upgrade" parameter to upgrade**
@@ -40,37 +40,24 @@ $ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quic
 </br>
 
 #### Current Version Change log:
-1. Optimized code
-1. Fixed -i option bug
+1. Enhanced uninstaller
+1. Enhanced upgrader
+1. Fixed "--status" argument
+
+</br>
 
 ![scutum_gui](https://user-images.githubusercontent.com/21986859/29802954-bb3475f2-8c46-11e7-8c21-efae476ac5a6.png)
 
 #### TODO:
-1. Fix self-upgrade feature
-1. Fix "SCUTUM stuck when configuring for an interface that's not connected to network" for wicd
+1. Fix WICD support
 
 #### Recent Changes:
+1. Optimized code
+1. Fixed -i option bug
 1. Completely fixed the issues that will occure when configuring arptables for multiple adapters
 1. Fixed the bug where if an added interface is not connected to network, SCUTUM will be stuck trying to configure it.
 1. Added support for a different type of systemd
 1. User can now select the installation path
-1. UFW can now be managed with SCUTUM
-1. Fixed some logger issues
-1. A LOT of other small improvements (eg. documentations)
-1. Fixed & Improved the Installation Mathod
-1. Changed TCP/UDP/ICMP Firewall to UFW
-1. Added new logger
-1. Added Easy TCP port manager
-1. Created different class for adapter controller
-1. Created different class for Installer
-1. Registers SCUTUM as a systemd system service
-1. Changed the way configurations are being stored (configparser)
-1. Added Self-Upgrading Function, now users can execute self-upgrading with $ sudo scutum --upgrade
-1. Added AVALON Framework Self-Upgrading function (included when using "--upgrade" parameter)
-1. Interfaces are now controlled by a new interface controller class
-1. SCUTUM GUI is now avaliable for testing
-1. Added option to choose whether to delete the installer file after installation
-1. Fixed arptables detection errors on some Linux distributions
 
 <br>
 <p align="center"> 
