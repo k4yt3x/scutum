@@ -19,7 +19,13 @@ $ sudo scutum --upgrade
 * `curl` or `wget` is required for quick install
 * `git` should be installed
 
-**SCUTUM Dependencies can be found in [DEPENDENCIES.md](https://github.com/K4YT3X/SCUTUM/blob/master/README.md)**
+**Example for a typical Ubuntu environment (16.04)**
+~~~~
+$ sudo apt install git python3-pip curl
+$ sudo pip3 install avalon_framework
+~~~~
+
+**Full SCUTUM Dependency list can be found in [DEPENDENCIES.md](https://github.com/K4YT3X/SCUTUM/blob/master/README.md)**
 
 **via curl**
 ~~~~
@@ -100,8 +106,12 @@ DISABLE (Temporarily): Disable SCUTUM until the next time connected to a network
 
 
 #### Usage
-This should be easy
-SCUTUM starts <b>automatically</b> by itself after installation
+SCUTUM starts **automatically** by itself after installation.
+
+Full up-to-date usage can be found by executing:
+~~~~
+$ scutum --help
+~~~~
 ~~~~
 $ sudo service scutum start     # Start scutum service
 $ sudo service scutum stop      # Stop scutum service
