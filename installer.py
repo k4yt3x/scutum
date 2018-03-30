@@ -230,7 +230,9 @@ class Installer():
         os.system("ufw --force reset")  # Reset ufw configurations
         os.system("rm -f /etc/ufw/*.*.*")  # Delete automatic backups
 
-        RMLIST = ['/usr/bin/scutum', self.INSTALL_DIR, self.CONFPATH, '/var/log/scutum.log']
+        RMLIST = ['/usr/bin/scutum', self.INSTALL_DIR, self.CONFPATH, '/var/log/scutum.log',
+                  '/usr/lib/systemd/system/scutum.service', '/etc/init.d/scutum',
+                  '/etc/systemd/system/multi-user.target.wants/scutum.service']
 
         for path in RMLIST:
             if os.path.isfile(path) or os.path.islink(path):
