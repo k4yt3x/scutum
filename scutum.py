@@ -23,7 +23,7 @@
 Name: SCUTUM Firewall
 Author: K4YT3X
 Date of Creation: March 8,2017
-Last Modified: Mar 10, 2018
+Last Modified: Mar 30, 2018
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -103,7 +103,7 @@ LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
 
 # This is the master version number
-VERSION = '2.6.6'
+VERSION = '2.6.7'
 
 
 # -------------------------------- Functions --------------------------------
@@ -206,6 +206,17 @@ if args.version:  # prints program legal / dev / version info
     print("License: GNU GPL v3")
     print("Github Page: https://github.com/K4YT3X/SCUTUM")
     print("Contact: k4yt3x@protonmail.com")
+    print()
+    exit(0)
+elif args.status:
+    """
+    Asks systemd-sysv-install if scutum is enabled
+    by systemctl. May not apply to non-Debian distros
+    """
+    if os.system("/lib/systemd/systemd-sysv-install is-enabled scutum"):
+        avalon.info("{}SCUTUM is {}{}{}".format(avalon.FM.RST, avalon.FG.R, "NOT ENABLED", avalon.FM.RST))
+    else:
+        avalon.info("{}SCUTUM is {}{}{}".format(avalon.FM.RST, avalon.FG.G, "ENABLED", avalon.FM.RST))
     print()
     exit(0)
 
