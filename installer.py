@@ -72,9 +72,16 @@ class Installer():
                     break
             avalon.subLevelTimeInfo('Server version: ' + server_version)
             if server_version > VERSION:
-                avalon.info('Here\'s a newer version of SCUTUM!')
+                avalon.info('There\'s a newer version of SCUTUM!')
                 if avalon.ask('Update to the newest version?'):
-                    self.install()
+                    script_url = 'https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quickinstall.sh'
+                    if not os.system("which curl"):
+                        os.system("sudo sh -c \"$(curl -fsSL {})\"".format(script_url))
+                    elif not os.system("which wget"):
+                        os.system("sudo sh -c \"$(wget {} -O -)\"".format(script_url))
+                    else:
+                        urllib.request.urlretrieve(script_url, '/tmp/quickinstall.sh')
+                        os.system('sudo bash /tmp/quickinstall.sh')
                 else:
                     avalon.warning('Ignoring update')
             else:
