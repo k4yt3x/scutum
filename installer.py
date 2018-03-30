@@ -4,12 +4,12 @@
 Name: SCUTUM Installer Class
 Author: K4YT3X
 Date Created: Sep 26, 2017
-Last Modified: Mar 10, 2018
+Last Modified: Mar 30, 2018
 
 Description: Handles the installation, removal, configuring and
 upgrading for SCUTUM
 
-Version 1.7
+Version 1.8
 """
 from iptables import Ufw
 import avalon_framework as avalon
@@ -225,15 +225,19 @@ class Installer():
             pass
 
     def removeScutum(self):
-        os.remove('/usr/bin/scutum')
-
         self.removeWicdScripts()
         self.removeNMScripts()
+        os.system("ufw --force reset")  # Reset ufw configurations
+        os.system("rm -f /etc/ufw/*.*.*")  # Delete automatic backups
 
-        try:
-            shutil.rmtree(self.INSTALL_DIR)
-        except FileNotFoundError:
-            pass
+        RMLIST = ['/usr/bin/scutum', self.INSTALL_DIR, self.CONFPATH, '/var/log/scutum.log']
+
+        for path in RMLIST:
+            if os.path.isfile(path) or os.path.islink(path):
+                os.remove(path)
+            elif os.path.isdir(path):
+                shutil.rmtree(path)
+
         avalon.info('SCUTUM successfully removed!')
         exit(0)
 
