@@ -3,7 +3,7 @@
 
 # SCUTUM Firewall
 
-#### Current Version: 2.6.7
+#### Current Version: 2.6.8
 
 **For versions before 2.6.0, please run the installation again manually  
 For versions after 2.6.0, run scutum with "--upgrade" parameter to upgrade**
@@ -40,9 +40,7 @@ $ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quic
 </br>
 
 #### Current Version Change log:
-1. Enhanced uninstaller
-1. Enhanced upgrader
-1. Fixed "--status" argument
+1. Checks upgrade during installation
 
 </br>
 
@@ -52,6 +50,9 @@ $ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quic
 1. Fix WICD support
 
 #### Recent Changes:
+1. Enhanced uninstaller
+1. Enhanced upgrader
+1. Fixed "--status" argument
 1. Optimized code
 1. Fixed -i option bug
 1. Completely fixed the issues that will occure when configuring arptables for multiple adapters
