@@ -103,7 +103,7 @@ LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
 
 # This is the master version number
-VERSION = '2.6.7'
+VERSION = '2.6.8'
 
 
 # -------------------------------- Functions --------------------------------
@@ -223,7 +223,7 @@ elif args.status:
 log = Logger(LOGPATH)
 installer = Installer(CONFPATH)
 
-if args.upgrade:
+if args.upgrade or args.install:
     installer.check_avalon()
     installer.check_version(VERSION)
     exit(0)

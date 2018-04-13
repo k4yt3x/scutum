@@ -70,7 +70,7 @@ class Installer():
                 if 'VERSION = ' in line:
                     server_version = line.split(' ')[-1].replace('\'', '')
                     break
-            avalon.subLevelTimeInfo('Server version: ' + server_version)
+            avalon.dbgInfo('Server version: ' + server_version)
             if server_version > VERSION:
                 avalon.info('There\'s a newer version of SCUTUM!')
                 if avalon.ask('Update to the newest version?'):
@@ -114,7 +114,7 @@ class Installer():
             else:
                 avalon.warning('Ignoring update')
         else:
-            avalon.subLevelTimeInfo('Current version: ' + localVersion)
+            avalon.dbgInfo('Current version: ' + localVersion)
             avalon.info('AVALON Framework is already on the newest version')
 
     def sysInstallPackage(self, package):

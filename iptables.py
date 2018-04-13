@@ -162,7 +162,7 @@ class Iptables:
         """  # this part adds gateway into iptables whitelist, might not be necessary
         while True:  # Just keep trying forever until the router is found
             if getGateway() != 0:
-                avalon.subLevelTimeInfo('Accepting Traffic from ' + getGateway())
+                avalon.dbgInfo('Accepting Traffic from ' + getGateway())
                 os.system('iptables -A INPUT -s ' + getGateway() + ' -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT')
                 break
         """
