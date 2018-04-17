@@ -1,21 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Name: SCUTUM iptables Class
+Name: SCUTUM ufw Class
 Author: K4YT3X
 Date Created: Sep 15, 2017
-Last Modified: Sep 30, 2017
+Last Modified: April 17, 2018
 
 Description: This class controls TCP/UDP/ICMP traffic
-using ufw and iptables.
+using ufw.
 
-This class is migrated from Project: DefenseMatrix
-
-Version 1.3
+Version 1.4
 """
 
 import avalon_framework as avalon
-import ipaddress
 import os
 import subprocess
 
@@ -38,9 +35,6 @@ class Ufw:
             FileNotFoundError -- raised when UFW not installed
         """
         self.log = log
-        if log is False:
-            from logger import Logger
-            self.log = Logger()
 
         if not os.path.isfile('/usr/sbin/ufw'):  # Detect if ufw installed
             print(avalon.FM.BD + avalon.FG.R + '\nWe have detected that you don\'t have UFW installed!' + avalon.FM.RST)
@@ -85,14 +79,14 @@ class Ufw:
             if "Default:" in line:
                 if not (line.split(' ')[1] + line.split(' ')[2] == "deny(incoming),"):
                     print(line.split(' ')[1] + line.split(' ')[2])
-                    self.log.writeLog("Adjusting default rule for incoming packages to drop")
+                    self.log.write("[UFW]: Adjusting default rule for incoming packages to drop\n")
                     os.system("ufw default deny incoming")
                 if not (line.split(' ')[3] + line.split(' ')[4] == "allow(outgoing),"):
                     line.split(' ')[3] + line.split(' ')[4]
-                    self.log.writeLog("Adjusting default rule for outgoing packages to allow")
+                    self.log.write("[UFW]: Adjusting default rule for outgoing packages to allow\n")
                     os.system("ufw default allow outgoing")
             if 'inactive' in line:
-                self.log.writeLog("Enabling ufw")
+                self.log.write("[UFW]: Enabling ufw\n")
                 os.system("ufw enable")
 
     def enable(self):
@@ -108,7 +102,7 @@ class Ufw:
         Arguments:
             port {int} -- Port number
         """
-        self.log.writeLog("Allowing port " + str(port))
+        self.log.write("[UFW]: Allowing port {}\n".format(str(port)))
         os.system("ufw allow " + str(port) + "/tcp")
 
     def expire(self, port):
@@ -118,61 +112,5 @@ class Ufw:
         Arguments:
             port {int} -- Port number
         """
-        self.log.writeLog("Expiring port " + str(port))
+        self.log.write("Expiring port {}\n".format(str(port)))
         os.system("ufw --force delete allow " + str(port) + "/tcp")
-
-
-class Iptables:
-    """
-    This is the classic simple iptables firewall
-    It is hard to configure/use
-    """
-
-    def __init__(self, log):
-        self.log = log
-        from adapter import Adapter
-        self.Adapter = Adapter
-
-    def updateIPTables(self):
-        """
-        Add router to iptables whitelist
-        """
-        if ipaddress.ip_address(self.Adapter.getIP(self)).is_private:
-            os.system('iptables -P INPUT DROP')
-            os.system('iptables -P FORWARD DROP')
-            os.system('iptables -P OUTPUT ACCEPT')
-            os.system('iptables -A INPUT -p tcp --match multiport --dports 1025:65535 -j ACCEPT')
-            with open('/etc/resolv.conf', 'r') as resolv:
-                dnsServers = []
-                for line in resolv:
-                    if 'nameserver' in line:
-                        for element in line.replace('\n', '').split(' '):
-                            try:
-                                if ipaddress.ip_address(element):
-                                    dnsServers.append(element)
-                            except ValueError:
-                                pass
-            for address in dnsServers:  # Accept all DNS within /etc/resolv.conf
-                os.system('iptables -A INPUT -p udp -s ' + address + ' -j ACCEPT')
-            # os.system('iptables -A INPUT -p udp -s 208.67.222.222 -j ACCEPT')
-            # os.system('iptables -A INPUT -p udp -s 208.67.220.220 -j ACCEPT')
-            os.system('iptables -A INPUT -m iprange --src-range 10.0.0.0-10.255.255.255 -j DROP')
-            os.system('iptables -A INPUT -m iprange --src-range 172.16.0.0-172.31.255.255 -j DROP')
-            os.system('iptables -A INPUT -m iprange --src-range 192.168.0.0-192.168.255.255 -j DROP')
-        """  # this part adds gateway into iptables whitelist, might not be necessary
-        while True:  # Just keep trying forever until the router is found
-            if getGateway() != 0:
-                avalon.dbgInfo('Accepting Traffic from ' + getGateway())
-                os.system('iptables -A INPUT -s ' + getGateway() + ' -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT')
-                break
-        """
-
-    def iptablesReset(self):
-        """
-        Flush everything in iptables completely
-        This function will reset iptables and flush all custom settings
-        """
-        os.system('iptables -F && iptables -X')
-        os.system('iptables -P INPUT ACCEPT')
-        os.system('iptables -P FORWARD ACCEPT')
-        os.system('iptables -P OUTPUT ACCEPT')
