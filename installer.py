@@ -4,29 +4,30 @@
 Name: SCUTUM Installer Class
 Author: K4YT3X
 Date Created: Sep 26, 2017
-Last Modified: Mar 30, 2018
+Last Modified: April 17, 2018
 
 Description: Handles the installation, removal, configuring and
 upgrading for SCUTUM
 
-Version 1.8
+Version 1.9
 """
-from iptables import Ufw
+from ufw import Ufw
 import avalon_framework as avalon
 import configparser
 import os
 import shutil
 import subprocess
-import urllib.response
+import urllib.request
 
 
 class Installer():
 
-    def __init__(self, CONFPATH="/etc/scutum.conf", INSTALL_DIR="/usr/share/scutum"):
+    def __init__(self, CONFPATH="/etc/scutum.conf", INSTALL_DIR="/usr/share/scutum", log=False):
         self.SCUTUM_BIN_FILE = "/usr/bin/scutum"
         self.CONFPATH = CONFPATH
         self.INSTALL_DIR = INSTALL_DIR
         self.INSTALLER_DIR = os.path.dirname(os.path.realpath(__file__))
+        self.log = log
 
     def install_service(self):
         if os.path.isdir("/etc/init.d/"):
@@ -94,8 +95,11 @@ class Installer():
         if necessary
         """
         avalon.info(avalon.FM.RST + 'Checking AVALON Framework Version...')
-        avalonVersionCheck = subprocess.Popen(["pip3", "freeze"], stdout=subprocess.PIPE).communicate()[0]
-        pipOutput = avalonVersionCheck.decode().split('\n')
+        if os.system('which pip3'):
+            avalon.warning('pip3 not found, aborting version check')
+            return
+        avalon_version_check = subprocess.Popen(["pip3", "freeze"], stdout=subprocess.PIPE).communicate()[0]
+        pipOutput = avalon_version_check.decode().split('\n')
         for line in pipOutput:
             if 'avalon-framework' in line:
                 localVersion = line.split('==')[-1]
@@ -117,7 +121,7 @@ class Installer():
             avalon.dbgInfo('Current version: ' + localVersion)
             avalon.info('AVALON Framework is already on the newest version')
 
-    def sysInstallPackage(self, package):
+    def sys_install_package(self, package):
         """Install a package using the system package manager
 
         This method will look for available system package managers
@@ -147,7 +151,7 @@ class Installer():
         else:
             return False
 
-    def installWicdScripts(self):
+    def install_wicd_scripts(self):
         """
         Write scutum scripts for WICD
         """
@@ -178,7 +182,7 @@ class Installer():
         print(avalon.FG.G + avalon.FM.BD + 'SUCCEED' + avalon.FM.RST)
         return True
 
-    def installNMScripts(self, interfaces):
+    def install_nm_scripts(self, interfaces):
         """
         Write scutum scripts for Network Manager
         """
@@ -218,22 +222,22 @@ class Installer():
         print(avalon.FG.G + avalon.FM.BD + 'SUCCEED' + avalon.FM.RST)
         return True
 
-    def removeWicdScripts(self):
+    def remove_wicd_scripts(self):
         try:
             os.remove('/etc/wicd/scripts/postconnect/scutum_connect')
             os.remove('/etc/wicd/scripts/postdisconnect/scutum_disconnect')
         except FileNotFoundError:
             pass
 
-    def removeNMScripts(self):
+    def remove_nm_scripts(self):
         try:
             os.remove('/etc/NetworkManager/dispatcher.d/scutum')
         except FileNotFoundError:
             pass
 
-    def removeScutum(self):
-        self.removeWicdScripts()
-        self.removeNMScripts()
+    def remove_scutum(self):
+        self.remove_wicd_scripts()
+        self.remove_nm_scripts()
         os.system("ufw --force reset")  # Reset ufw configurations
         os.system("rm -f /etc/ufw/*.*.*")  # Delete automatic backups
 
@@ -271,8 +275,6 @@ class Installer():
         """
         This is the main function for installer
         """
-        global ifacesSelected
-
         config = configparser.ConfigParser()
         config["Interfaces"] = {}
         config["NetworkControllers"] = {}
@@ -306,51 +308,51 @@ class Installer():
         if not os.path.isfile('/usr/bin/arptables') and not os.path.isfile('/sbin/arptables'):  # Detect if arptables installed
             print(avalon.FM.BD + avalon.FG.R + '\nWe have detected that you don\'t have arptables installed!' + avalon.FM.RST)
             print('SCUTUM requires arptables to run')
-            if not self.sysInstallPackage("arptables"):
+            if not self.sys_install_package("arptables"):
                 avalon.error("arptables is required for scutum. Exiting...")
                 exit(1)
 
-        ifacesSelected = []
+        ifaces_selected = []
+        ifaces = []
+        with open('/proc/net/dev', 'r') as dev:
+            for line in dev:
+                try:
+                    if line.split(':')[1]:
+                        ifaces.append(line.split(':')[0])
+                except IndexError:
+                    pass
         while True:
-            print(avalon.FM.BD + '\nWhich interface do you wish to install for?' + avalon.FM.RST)
-            ifaces = []
-            with open('/proc/net/dev', 'r') as dev:
-                for line in dev:
-                    try:
-                        if line.split(':')[1]:
-                            ifaces.append(line.split(':')[0])
-                    except IndexError:
-                        pass
+            print(avalon.FM.BD + '\nWhich interface do you want scutum to control?' + avalon.FM.RST)
             if not len(ifaces) == 0:
                 idx = 0
                 for iface in ifaces:
-                    print(str(idx) + '. ' + iface.replace(' ', ''))
+                    if iface.replace(' ', '') not in ifaces_selected:
+                        print('{}. {}'.format(str(idx), iface.replace(' ', '')))
                     idx += 1
-            print('99. Manually Enter')
+            print('x. Manually Enter')
+            print(avalon.FM.BD + 'Press [ENTER] when complete' + avalon.FM.RST)
             selection = avalon.gets('Please select (index number): ')
 
             try:
-                if selection == '99':
+                if selection == 'x':
                     manif = avalon.gets('Interface: ')
-                    if manif not in ifacesSelected:
-                        ifacesSelected.append(manif)
-                    if avalon.ask('Add more interfaces?', False):
-                        pass
-                    else:
+                    if manif not in ifaces_selected:
+                        ifaces_selected.append(manif)
+                elif selection == '':
+                    if len(ifaces_selected) != 0:
                         break
+                    else:
+                        avalon.error('You have not selected any interfaces yet')
                 elif int(selection) >= len(ifaces):
                     avalon.error('Selected interface doesn\'t exist!')
                 else:
-                    ifacesSelected.append(ifaces[int(selection)].replace(' ', ''))
-                    if avalon.ask('Add more interfaces?', False):
-                        pass
-                    else:
-                        break
+                    ifaces_selected.append(ifaces[int(selection)].replace(' ', ''))
+
             except ValueError:
                 avalon.error('Invalid Input!')
                 avalon.error('Please enter the index number!')
 
-        config["Interfaces"]["interfaces"] = ",".join(ifacesSelected)
+        config["Interfaces"]["interfaces"] = ",".join(ifaces_selected)
 
         while True:
             print(avalon.FM.BD + '\nWhich network controller do you want to install for?' + avalon.FM.RST)
@@ -361,14 +363,14 @@ class Installer():
             selection = avalon.gets('Please select: (index number): ')
 
             if selection == '1':
-                if self.installWicdScripts() is not True:
+                if self.install_wicd_scripts() is not True:
                     avalon.error("SCUTUM Script for WICD has failed to install!")
                     avalon.error("Aborting Installation...")
                     exit(1)
                 config["NetworkControllers"]["controllers"] = "wicd"
                 break
             elif selection == '2':
-                if self.installNMScripts(ifacesSelected) is not True:
+                if self.install_nm_scripts(ifaces_selected) is not True:
                     avalon.error("SCUTUM Script for NetworkManager has failed to install!")
                     avalon.error("Aborting Installation...")
                     exit(1)
@@ -376,10 +378,10 @@ class Installer():
                 break
             elif selection == '3':
                 ifaces = ["wicd", "NetworkManager"]
-                if self.installWicdScripts() is not True:
+                if self.install_wicd_scripts() is not True:
                     avalon.warning("Deselected WICD from installation")
                     ifaces.remove("wicd")
-                if self.installNMScripts(ifacesSelected) is not True:
+                if self.install_nm_scripts(ifaces_selected) is not True:
                     avalon.warning("Deselected NetworkManager from installation")
                     ifaces.remove("NetworkManager")
                 if len(ifaces) == 0:
@@ -395,7 +397,7 @@ class Installer():
         print("Do you want SCUTUM to help configuring and enabling UFW firewall?")
         print("This will prevent a lot of scanning and attacks")
         if avalon.ask('Enable?', True):
-            ufwctrl = Ufw(False)
+            ufwctrl = Ufw(log=self.log)
             print("UFW can configure UFW Firewall for you")
             print("However this will reset your current UFW configurations")
             print("It is recommended to do so the first time you install SCUTUM")
