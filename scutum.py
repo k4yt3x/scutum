@@ -22,8 +22,8 @@
 
 Name: SCUTUM Firewall
 Author: K4YT3X
-Date of Creation: March 8,2017
-Last Modified: Mar 30, 2018
+Date of Creation: March 8, 2017
+Last Modified: April 17, 2018
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -45,71 +45,28 @@ a network, the command will hang until the Internet is connected
 
 """
 from __future__ import print_function
-from adapter import Adapter
+from interface import Interface
 from installer import Installer
-from iptables import Ufw
-from logger import Logger
+from ufw import Ufw
+import avalon_framework as avalon
 import argparse
 import configparser
 import datetime
 import os
 import traceback
-import urllib.request
-
-try:
-    import avalon_framework as avalon
-except ImportError:
-    while True:
-        install = input('\033[31m\033[1mAVALON Framework not installed! Install now? [Y/n] \033[0m')
-        if len(install) == 0 or install[0].upper() == 'Y':
-            try:
-                if os.path.isfile('/usr/bin/pip3'):
-                    # Try installing with installed pip
-                    print('Installing using method 1')
-                    os.system('pip3 install avalon_framework')
-                elif os.path.isfile('/usr/bin/wget'):
-                    # Try downloading pip from bootstrap and install avalon
-                    # framework
-                    print('Installing using method 2')
-                    os.system('wget -O - https://bootstrap.pypa.io/get-pip.py | python3')
-                    os.system('pip3 install avalon_framework')
-                else:
-                    # download script with urllib.request if wget is not present
-                    print('Installing using method 3')
-                    # import urllib.request
-                    content = urllib.request.urlopen('https://bootstrap.pypa.io/get-pip.py')
-                    with open('/tmp/get-pip.py', 'w') as getpip:
-                        getpip.write(content.read().decode())
-                        getpip.close()
-                    os.system('python3 /tmp/get-pip.py')
-                    os.system('pip3 install avalon_framework')
-                    os.remove('/tmp/get-pip.py')
-            except Exception as e:
-                print('\033[31mInstallation failed!: ' + str(e))
-                print('Please check your Internet connectivity')
-                exit(0)
-            print('\033[32mInstallation Succeed!\033[0m')
-            print('\033[32mPlease restart the program\033[0m')
-            exit(0)
-        elif install[0].upper() == 'N':  # if the user choose not to install
-            print('\033[31m\033[1mSCUTUMM requires avalon framework to run!\033[0m')
-            print('\033[33mAborting..\033[0m')
-            exit(0)
-        else:
-            print('\033[31m\033[1mInvalid Input!\033[0m')
 
 
 LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
 
 # This is the master version number
-VERSION = '2.6.8'
+VERSION = '2.7.0 alpha'
 
 
 # -------------------------------- Functions --------------------------------
 
 
-def printIcon():
+def print_icon():
     """Print SCUTUM icon
 
     Credits goes to messletters.com
@@ -123,7 +80,7 @@ def printIcon():
     print(avalon.FM.BD + "\n" + spaces + '    Version ' + VERSION + '\n' + avalon.FM.RST)
 
 
-def processArguments():
+def process_arguments():
     """This function parses all arguments
 
     There are three groups of arguments.
@@ -162,7 +119,7 @@ def update_arptables():
     locks gateway mac addresses
 
     This function creates an instance for each handled
-    adapter and updates it's corresponded gateway mac
+    interface and updates it's corresponded gateway mac
     address into arptables.
     """
 
@@ -171,42 +128,65 @@ def update_arptables():
     os.system('arptables --flush')
 
     if args.interface:
-        interface = Adapter(args.interface, log)
-        interface.updateGatewayAddrs()
-        if interface.gatewayMac:
+        interface = Interface(args.interface, log)
+        interface.update_gateway_addrs()
+        log.write('ADAPTER={}\n'.format(interface.interface))
+        log.write('GATEWAY_MAC={}\n'.format(interface.gateway_mac))
+        log.write('SELF_IP={}\n'.format(interface.get_ip()))
+        if interface.gateway_mac:
             os.system('arptables -P INPUT DROP')
-            os.system('arptables -A INPUT --source-mac ' + interface.gatewayMac + ' -j ACCEPT')
+            os.system('arptables -A INPUT --source-mac ' + interface.gateway_mac + ' -j ACCEPT')
     else:
-        # Create one instance for each adapter
+        # Create one instance for each interface
         for interface in interfaces:
-            interface = Adapter(interface, log)
+            interface = Interface(interface, log)
             ifaceobjs.append(interface)
 
-        # make each adapter update gateway mac address
+        # make each interface update gateway mac address
         for interface in ifaceobjs:
-            interface.updateGatewayAddrs()
+            interface.update_gateway_addrs()
+            if interface.gateway_mac or interface.get_ip():
+                log.write('ADAPTER={}\n'.format(interface.interface))
+                log.write('GATEWAY_MAC={}\n'.format(interface.gateway_mac))
+                log.write('SELF_IP={}\n'.format(interface.get_ip()))
 
         for interface in ifaceobjs:
-            if interface.gatewayMac:
+            if interface.gateway_mac:
                 os.system('arptables -P INPUT DROP')
-                os.system('arptables -A INPUT --source-mac ' + interface.gatewayMac + ' -j ACCEPT')
+                os.system('arptables -A INPUT --source-mac ' + interface.gateway_mac + ' -j ACCEPT')
+
+
+def initialize():
+    log.write('{}\n'.format(str(datetime.datetime.now())))
+    if not os.path.isfile(CONFPATH):  # Configuration not found
+        avalon.error('SCUTUM configuration file not found! Please re-install SCUTUM!')
+        avalon.warning('Please run "scutum --install" before using it for the first time')
+        raise FileNotFoundError(CONFPATH)
+
+    # Initialize python confparser and read config
+    config = configparser.ConfigParser()
+    config.read(CONFPATH)
+
+    # Read sections from the configuration file
+    interfaces = config["Interfaces"]["interfaces"].split(",")
+    network_controllers = config["NetworkControllers"]["controllers"]
+    ufw_handled = bool(config["Ufw"]["handled"])
+    return config, interfaces, network_controllers, ufw_handled
 
 
 # -------------------------------- Execute --------------------------------
 
-args = processArguments()
-
+args = process_arguments()
 
 if not (args.enable or args.disable):
-    printIcon()
+    print_icon()
 
 if args.version:  # prints program legal / dev / version info
     print("Current Version: " + VERSION)
     print("Author: K4YT3X")
     print("License: GNU GPL v3")
     print("Github Page: https://github.com/K4YT3X/SCUTUM")
-    print("Contact: k4yt3x@protonmail.com")
-    print()
+    print("Contact: k4yt3x@protonmail.com\n")
     exit(0)
 elif args.status:
     """
@@ -214,116 +194,99 @@ elif args.status:
     by systemctl. May not apply to non-Debian distros
     """
     if os.system("/lib/systemd/systemd-sysv-install is-enabled scutum"):
-        avalon.info("{}SCUTUM is {}{}{}".format(avalon.FM.RST, avalon.FG.R, "NOT ENABLED", avalon.FM.RST))
+        avalon.info("{}SCUTUM is {}{}{}\n".format(avalon.FM.RST, avalon.FG.R, "NOT ENABLED", avalon.FM.RST))
     else:
-        avalon.info("{}SCUTUM is {}{}{}".format(avalon.FM.RST, avalon.FG.G, "ENABLED", avalon.FM.RST))
-    print()
+        avalon.info("{}SCUTUM is {}{}{}\n".format(avalon.FM.RST, avalon.FG.G, "ENABLED", avalon.FM.RST))
     exit(0)
+elif os.getuid() != 0:  # Multiple components require root access
+    avalon.error('SCUTUM must be run as root!')
+    print(avalon.FG.LGR + 'It requires root privilege to operate the system' + avalon.FM.RST)
+    exit(1)
 
-log = Logger(LOGPATH)
-installer = Installer(CONFPATH)
+exit_code = 0
+log = open(LOGPATH, 'a+')
+installer = Installer(CONFPATH, log=log)
 
 if args.upgrade or args.install:
     installer.check_avalon()
     installer.check_version(VERSION)
-    exit(0)
+    if args.upgrade:
+        exit(exit_code)
 
 try:
-    if os.getuid() != 0:  # Arptables requires root
-        avalon.error('SCUTUM must be run as root!')
-        print(avalon.FG.LGR + 'It needs to control the system firewall so..' + avalon.FM.RST)
-        exit(0)
     if not (args.purgelog or args.install or args.uninstall):
         # if program is doing normal operations, log everything
         # pointless if purging log, installing/removing
-        log.writeLog(str(datetime.datetime.now()) + ' ---- START ----')
-        log.writeLog(str(datetime.datetime.now()) + '  UID: ' + str(os.getuid()))
-        if not os.path.isfile(CONFPATH):  # Configuration not found
-            avalon.error('SCUTUM configuration file not found! Please re-install SCUTUM!')
-            avalon.warning('Please run "scutum --install" before using it for the first time')
-            exit(1)
-
-        # Initialize python confparser and read config
-        config = configparser.ConfigParser()
-        config.read(CONFPATH)
-        config.sections()
-
-        # Read sections from the configuration file
-        interfaces = config["Interfaces"]["interfaces"].split(",")
-        NetworkControllers = config["NetworkControllers"]["controllers"]
-        ufwHandled = config["Ufw"]["handled"]
+        config, interfaces, network_controllers, ufw_handled = initialize()
 
     if args.install:
         # Install scutum into system
-        avalon.info('Start Installing SCUTUM...')
+        avalon.info('Starting installation procedure')
         installer.install()
         print('\n' + avalon.FM.BD, end='')
         avalon.info('Installation Complete!')
         avalon.info('SCUTUM service is now enabled on system startup')
         avalon.info('You can now control it with systemd')
         avalon.info("You can also control it manually with \"scutum\" command")
-        exit(0)
     elif args.uninstall:
         # Removes scutum completely from the system
         # Note that the configuration file will be removed too
         if avalon.ask('Removal Confirm: ', False):
-            installer.removeScutum()
+            installer.remove_scutum()
         else:
             avalon.warning('Removal Canceled')
-            exit(0)
     elif args.reset:
         # resets the arptable, ufw and accept all incoming connections
         # This will expose the computer entirely on the network
-        log.writeLog(str(datetime.datetime.now()) + ' ---- START ----')
+        log.write('TIME={}\n'.format(str(datetime.datetime.now())))
         os.system('arptables -P INPUT ACCEPT')
         os.system('arptables --flush')
-        if ufwHandled.lower() == "true":
-                ufwctrl = Ufw(log)
+        if ufw_handled is True:
+                ufwctrl = Ufw(log=log)
                 ufwctrl.disable()
-        avalon.info('RST OK')
-        log.writeLog(str(datetime.datetime.now()) + ' RESET OK')
+        avalon.info('RESETED')
+        log.write('RESETED\n')
     elif args.purgelog:
         # Deletes the log file of scutum
         # TODO: delete rotated logs too
-        log.purge()
-        avalon.info('LOG PURGE OK')
-        exit(0)
+        os.system('rm {}'.format(LOGPATH))
+        avalon.info('LOG PURGED')
     elif args.enable or args.disable:
         if args.enable:
             # Enable scutum will write scrips for wicd and network-manager
             # scutum will be started automatically
-            log.writeLog(str(datetime.datetime.now()) + " SCUTUM ENABLED")
-            if "wicd" in NetworkControllers.split(","):
-                installer.installWicdScripts()
-            if "NetworkManager" in NetworkControllers.split(","):
-                installer.installNMScripts(config["NetworkControllers"]["controllers"].split(","))
+            if "wicd" in network_controllers.split(","):
+                installer.install_wicd_scripts()
+            if "NetworkManager" in network_controllers.split(","):
+                installer.install_nm_scripts(config["network_controllers"]["controllers"].split(","))
             ifaceobjs = []  # a list to store internet controller objects
             os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
 
             update_arptables()
 
-            if ufwHandled.lower() == "true":
+            if ufw_handled is True:
                 # if ufw is handled by scutum, enable it
-                ufwctrl = Ufw(log)
+                ufwctrl = Ufw(log=log)
                 ufwctrl.enable()
-            avalon.info('OK')
+            avalon.info('ENABLED')
+            log.write('ENABLED\n')
         elif args.disable:
             # This will disable scutum entirely and ufw too if it
             # is handled by scutum. scutum will not be started automatically
             # Firewalls will be reseted and expose the computer completely
-            log.writeLog(str(datetime.datetime.now()) + " SCUTUM DISABLED")
-            installer.removeNMScripts()
-            installer.removeWicdScripts()
+            installer.remove_nm_scripts()
+            installer.remove_wicd_scripts()
             os.system('arptables -P INPUT ACCEPT')
             os.system('arptables --flush')
-            if ufwHandled.lower() == "true":
-                ufwctrl = Ufw(log)
+            if ufw_handled is True:
+                ufwctrl = Ufw(log=log)
                 ufwctrl.disable()
-            avalon.info('RST OK')
+            avalon.info('DISABLED')
+            log.write('DISABLED\n')
     elif args.enablegeneric or args.disablegeneric:
         # you can choose to make scutum to handle ufw
         # after the installation
-        ufwctrl = Ufw(log)
+        ufwctrl = Ufw(log=log)
         if args.enablegeneric:
             ufwctrl.enable()
         elif args.disablegeneric:
@@ -334,26 +297,28 @@ try:
 
         update_arptables()
 
-        if ufwHandled.lower() == "true":
-                ufwctrl = Ufw(log)
+        if ufw_handled is True:
+                ufwctrl = Ufw(log=log)
                 ufwctrl.enable()
         avalon.info('OK')
 except KeyboardInterrupt:
-    print('\n')
-    avalon.warning('^C Pressed! Exiting...')
-except KeyError:  # configuration section(s) missing
-    avalon.error('The program configuration file is broken for some reason')
-    avalon.error('You should reinstall SCUTUM to repair the configuration file')
+    avalon.warning('KeyboardInterrupt caught')
+    avalon.warning('Exiting')
+    exit_code = 1
     traceback.print_exc()
+    traceback.print_exc(file=log)
+except KeyError:
+    avalon.error('The program configuration file is broken for some reason')
+    avalon.error('You should reinstall SCUTUM to repair the configuration file\n')
+    exit_code = 1
+    traceback.print_exc()
+    traceback.print_exc(file=log)
 except Exception as e:
-    print()
-    avalon.error("SCUTUM has encountered an error:")
-    traceback.print_exc()  # TODO: write this into the log
-    if os.getuid() == 0:
-        log.writeLog(str(datetime.datetime.now()) + ' -!-! ERROR !-!-')
-        log.writeLog(str(e) + '\n')
+    avalon.error("SCUTUM has encountered an error")
+    exit_code = 1
+    traceback.print_exc()
+    traceback.print_exc(file=log)
 finally:
-    # write and close the log before exiting
-    if not (args.purgelog or args.install or args.uninstall or os.getuid() != 0):
-        log.writeLog(str(datetime.datetime.now()) + ' ---- FINISH ----\n')
-    exit(0)
+    log.write('\n')
+    log.close()
+    exit(exit_code)
