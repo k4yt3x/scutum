@@ -3,7 +3,7 @@
 
 # SCUTUM Firewall
 
-#### Current Version: 2.7.0 alpha
+#### Current Version: 2.7.0 alpha2
 
 **THIS IS AN ALPHA VERSION.** Program might be unstable!
 
