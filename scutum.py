@@ -53,6 +53,7 @@ import argparse
 import configparser
 import datetime
 import os
+import urllib.request
 import traceback
 
 
@@ -60,7 +61,7 @@ LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
 
 # This is the master version number
-VERSION = '2.7.0 alpha'
+VERSION = '2.7.0 alpha2'
 
 
 # -------------------------------- Functions --------------------------------
@@ -114,7 +115,7 @@ def process_arguments():
     return parser.parse_args()
 
 
-def update_arptables():
+def update_arptables(log):
     """operates arptables directly and
     locks gateway mac addresses
 
@@ -157,6 +158,12 @@ def update_arptables():
 
 
 def initialize():
+    """ Parses configuration
+    This function parses the configuration file and
+    load the configurations into the program
+
+    TODO: Do something about KeyError
+    """
     log.write('{}\n'.format(str(datetime.datetime.now())))
     if not os.path.isfile(CONFPATH):  # Configuration not found
         avalon.error('SCUTUM configuration file not found! Please re-install SCUTUM!')
@@ -208,8 +215,11 @@ log = open(LOGPATH, 'a+')
 installer = Installer(CONFPATH, log=log)
 
 if args.upgrade or args.install:
-    installer.check_avalon()
-    installer.check_version(VERSION)
+    try:
+        installer.check_avalon()
+        installer.check_version(VERSION)
+    except urllib.error.URLError:
+        pass
     if args.upgrade:
         exit(exit_code)
 
@@ -258,11 +268,11 @@ try:
             if "wicd" in network_controllers.split(","):
                 installer.install_wicd_scripts()
             if "NetworkManager" in network_controllers.split(","):
-                installer.install_nm_scripts(config["network_controllers"]["controllers"].split(","))
+                installer.install_nm_scripts(config["NetworkControllers"]["controllers"].split(","))
             ifaceobjs = []  # a list to store internet controller objects
             os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
 
-            update_arptables()
+            update_arptables(log)
 
             if ufw_handled is True:
                 # if ufw is handled by scutum, enable it
@@ -295,11 +305,11 @@ try:
         ifaceobjs = []  # a list to store internet controller objects
         os.system('arptables -P INPUT ACCEPT')  # Accept to get Gateway Cached
 
-        update_arptables()
+        update_arptables(log)
 
         if ufw_handled is True:
-                ufwctrl = Ufw(log=log)
-                ufwctrl.enable()
+            ufwctrl = Ufw(log=log)
+            ufwctrl.enable()
         avalon.info('OK')
 except KeyboardInterrupt:
     avalon.warning('KeyboardInterrupt caught')
