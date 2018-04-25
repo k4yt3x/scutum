@@ -3,7 +3,7 @@
 
 # SCUTUM Firewall
 
-#### Current Version: 2.7.0 alpha2
+#### Current Version: 2.7.0 alpha3
 
 **THIS IS AN ALPHA VERSION.** Program might be unstable!
 
@@ -48,6 +48,7 @@ $ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quic
 
 #### Current Version Change log
 
+1. Logging error and import errors fixed
 1. Code optimization
 1. Better installation wizard
 1. New log system
