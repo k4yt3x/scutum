@@ -3,11 +3,20 @@
 
 # SCUTUM Firewall
 
-#### Current Version: 2.7.1
+## Introduction
 
-```
-$ sudo scutum --upgrade
-```
+**In short, SCUTUM configures your personal computer automatically against malicious TCP/UDP traffic and ARP spoofing attacks.** This software uses UFW to setup conventional firewall for you, determines and locks the gateway MAC address so you won't get ARP-spoofed.
+
+This software is designed to be compact and effective. Currently it can support only one interface at a time. Traffic will only be allowed on one interface. We are looking into possibilities of supporting multiple interfaces at once.
+
+## Aug 17, 2018 (2.7.1)
+
+1. Updated GitHub repository urls in the files
+1. Changed current version to stable
+
+### TODO
+
+1. Fix WICD support
 
 ## Quick Install
 
@@ -23,46 +32,21 @@ $ sudo apt install git python3-pip curl
 $ sudo pip3 install avalon_framework
 ```
 
-**Full SCUTUM Dependency list can be found in [DEPENDENCIES.md](https://github.com/K4YT3X/SCUTUM/blob/master/README.md)**
+**Full SCUTUM Dependency list can be found in [DEPENDENCIES.md](https://github.com/K4YT3X/scutum/blob/master/README.md)**
 
 **via curl**
 
 ```
-$ sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quickinstall.sh)"
+$ sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/K4YT3X/scutum/master/quickinstall.sh)"
 ```
 
 **via wget**
 
 ```
-$ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quickinstall.sh -O -)"
+$ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/scutum/master/quickinstall.sh -O -)"
 ```
 
-#### Current Version Change log
-
-1. Logging error and import errors fixed
-2. Code optimization
-3. Better installation wizard
-4. New log system
-5. New error handling system
-
 ![scutum_gui](https://user-images.githubusercontent.com/21986859/29802954-bb3475f2-8c46-11e7-8c21-efae476ac5a6.png)
-
-#### TODO
-
-1. Fix WICD support
-
-#### Recent Changes
-
-1. Checks upgrade during installation
-1. Enhanced uninstaller
-1. Enhanced upgrader
-1. Fixed "--status" argument
-1. Optimized code
-1. Fixed -i option bug
-1. Completely fixed the issues that will occure when configuring arptables for multiple adapters
-1. Fixed the bug where if an added interface is not connected to network, SCUTUM will be stuck trying to configure it.
-1. Added support for a different type of systemd
-1. User can now select the installation path
 
 </br>
 <p align="center">
@@ -87,7 +71,7 @@ You should run a installation before running it for the first time for setting u
 Quick install above is recommended
 
 ```
-git clone https://github.com/K4YT3X/SCUTUM.git
+git clone https://github.com/K4YT3X/scutum.git
 cd SCUTUM/
 sudo python3 scutum.py --install
 ```
