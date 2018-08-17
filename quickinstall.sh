@@ -14,6 +14,6 @@ if [ -d "/usr/share/scutum/" ]; then
 fi
 
 
-git clone https://github.com/K4YT3X/SCUTUM.git /usr/share/scutum
+git clone https://github.com/K4YT3X/scutum.git /usr/share/scutum
 cd /usr/share/scutum
 /usr/bin/env python3 scutum.py --install

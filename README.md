@@ -1,20 +1,13 @@
 [![Join the chat at https://gitter.im/K4YT3X-DEV/SCUTUM](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/K4YT3X-DEV/SCUTUM?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![status](https://travis-ci.org/K4YT3X/SCUTUM.svg)](https://travis-ci.org/K4YT3X/SCUTUM)
+[![status](https://travis-ci.org/K4YT3X/scutum.svg)](https://travis-ci.org/K4YT3X/scutum)
 
 # SCUTUM Firewall
 
-#### Current Version: 2.7.0 alpha3
-
-**THIS IS AN ALPHA VERSION.** Program might be unstable!
-
-**For versions before 2.6.0, please run the installation again manually  
-For versions after 2.6.0, run scutum with "--upgrade" parameter to upgrade**
+#### Current Version: 2.7.1
 
 ```
 $ sudo scutum --upgrade
 ```
-
-</br>
 
 ## Quick Install
 
@@ -44,17 +37,13 @@ $ sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/K4YT3X/SCUTUM/maste
 $ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quickinstall.sh -O -)"
 ```
 
-</br>
-
 #### Current Version Change log
 
 1. Logging error and import errors fixed
-1. Code optimization
-1. Better installation wizard
-1. New log system
-1. New error handling system
-
-</br>
+2. Code optimization
+3. Better installation wizard
+4. New log system
+5. New error handling system
 
 ![scutum_gui](https://user-images.githubusercontent.com/21986859/29802954-bb3475f2-8c46-11e7-8c21-efae476ac5a6.png)
 
@@ -87,8 +76,6 @@ $ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/SCUTUM/master/quic
 SCUTUM is an ARP firewall that **prevents your computer from being ARP-spoofed** by other computers on LAN. SCUTUM controls "arptables" in your computer so it accepts ARP packets only from the gateway. This way, when people with malicious intentions cannot spoof your arp table. SCUTUM also prevents other people from detecting your device on LAN if SCUTUM is used with properly configured TCP/UDP firewall.
 
 SCUTUM is also capable of handling tcp/udp/icmp traffic with iptables. You can choose to enable this feature during installation. However, a more professional firewall controller like UFW is recommended. They can handle traffic with more precision.
-
-</br>
 
 ## Usage & Installation
 
@@ -136,8 +123,6 @@ $ sudo scutum --install         # Run scutum installation wizard and install SCU
 $ sudo scutum --uninstall       # Remove SCUTUM from system completely 
 $ sudo scutum --upgrade         # Upgrade SCUTUM and AVALON Framework
 ```
-
-</br>
 
 ## SCUTUM Workflow
 

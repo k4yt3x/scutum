@@ -44,7 +44,6 @@ a network, the command will hang until the Internet is connected
 (when an IP address is assigned, when gateway address is defined)
 
 """
-from __future__ import print_function
 from interface import Interface
 from installer import Installer
 from ufw import Ufw
@@ -61,10 +60,10 @@ LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
 
 # This is the master version number
-VERSION = '2.7.0 alpha3'
+VERSION = '2.7.1'
 
 
-# -------------------------------- Functions --------------------------------
+# -------------------------------- Functions
 
 
 def print_icon():
@@ -181,7 +180,7 @@ def initialize():
     return config, interfaces, network_controllers, ufw_handled
 
 
-# -------------------------------- Execute --------------------------------
+# -------------------------------- Execute
 
 args = process_arguments()
 
@@ -192,7 +191,7 @@ if args.version:  # prints program legal / dev / version info
     print("Current Version: " + VERSION)
     print("Author: K4YT3X")
     print("License: GNU GPL v3")
-    print("Github Page: https://github.com/K4YT3X/SCUTUM")
+    print("Github Page: https://github.com/K4YT3X/scutum")
     print("Contact: k4yt3x@protonmail.com\n")
     exit(0)
 elif args.status:
