@@ -47,11 +47,7 @@ $ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/scutum/master/quic
 ```
 
 ![scutum_gui](https://user-images.githubusercontent.com/21986859/29802954-bb3475f2-8c46-11e7-8c21-efae476ac5a6.png)
-
-</br>
-<p align="center">
-<img src="https://user-images.githubusercontent.com/21986859/27760965-d228eda6-5e29-11e7-9ba6-3d9cc0408fd8.png">
-</p>
+![effects](https://user-images.githubusercontent.com/21986859/44294941-86b5da80-a26d-11e8-9ed1-f67171a3f4d2.png)
 
 ## What is SCUTUM?
 
