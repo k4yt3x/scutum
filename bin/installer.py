@@ -9,7 +9,7 @@ Last Modified: October 9, 2018
 Description: Handles the installation, removal, configuring and
 upgrading for SCUTUM
 
-Version 1.9.3
+Version 1.9.4
 """
 from ufw import Ufw
 import avalon_framework as avalon
@@ -65,7 +65,7 @@ class Installer():
             string -- server version number
         """
         avalon.info(avalon.FM.RST + 'Checking SCUTUM Version...')
-        with urllib.request.urlopen('https://raw.githubusercontent.com/K4YT3X/scutum/master/scutum.py') as response:
+        with urllib.request.urlopen('https://raw.githubusercontent.com/K4YT3X/scutum/master/bin/scutum.py') as response:
             html = response.read().decode().split('\n')
             for line in html:
                 if 'VERSION = ' in line:
