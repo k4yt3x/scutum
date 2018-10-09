@@ -9,9 +9,10 @@
 
 This software is designed to be compact and effective. Currently it can support only one interface at a time. Traffic will only be allowed on one interface. We are looking into possibilities of supporting multiple interfaces at once.
 
-## Aug 17, 2018 (2.7.2)
+## October 9, 2018 (2.8.0)
 
-1. Skipping interface when not connected.
+1. Rearranged files thus making the entire repository cleaner and more readable.
+1. Minor bug fixes.
 
 ### TODO
 
