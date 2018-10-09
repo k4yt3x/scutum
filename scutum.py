@@ -60,7 +60,7 @@ LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
 
 # This is the master version number
-VERSION = '2.7.1'
+VERSION = '2.7.2'
 
 
 # -------------------------------- Functions
@@ -174,7 +174,10 @@ def initialize():
     config.read(CONFPATH)
 
     # Read sections from the configuration file
-    interfaces = config["Interfaces"]["interfaces"].split(",")
+    for interface in config["Interfaces"]["interfaces"].split(","):
+        if os.path.isdir('/sys/class/net/{}'.format(interface)):
+            # Check if interface is connected
+            interfaces.append(interface)
     network_controllers = config["NetworkControllers"]["controllers"]
     ufw_handled = bool(config["Ufw"]["handled"])
     return config, interfaces, network_controllers, ufw_handled
