@@ -26,7 +26,7 @@ This software is designed to be compact and effective. Currently it can support 
 * `curl` or `wget` is required for quick install
 * `git` should be installed
 
-**Example for a typical Ubuntu environment (16.04)**
+**Example for a typical Ubuntu environment (18.04)**
 ```
 $ sudo apt install git python3-pip curl
 $ sudo pip3 install avalon_framework
@@ -37,13 +37,13 @@ $ sudo pip3 install avalon_framework
 **via curl**
 
 ```
-$ sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/K4YT3X/scutum/master/quickinstall.sh)"
+$ sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/K4YT3X/scutum/master/bin/quickinstall.sh)"
 ```
 
 **via wget**
 
 ```
-$ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/scutum/master/quickinstall.sh -O -)"
+$ sudo sh -c "$(wget https://raw.githubusercontent.com/K4YT3X/scutum/master/bin/quickinstall.sh -O -)"
 ```
 
 ![scutum_gui](https://user-images.githubusercontent.com/21986859/29802954-bb3475f2-8c46-11e7-8c21-efae476ac5a6.png)
