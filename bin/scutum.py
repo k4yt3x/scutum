@@ -23,7 +23,7 @@
 Name: SCUTUM Firewall
 Author: K4YT3X
 Date of Creation: March 8, 2017
-Last Modified: April 25, 2018
+Last Modified: October 9, 2018
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -60,7 +60,7 @@ LOGPATH = '/var/log/scutum.log'
 CONFPATH = "/etc/scutum.conf"
 
 # This is the master version number
-VERSION = '2.7.2'
+VERSION = '2.8.0'
 
 
 # -------------------------------- Functions
@@ -174,6 +174,7 @@ def initialize():
     config.read(CONFPATH)
 
     # Read sections from the configuration file
+    interfaces = []
     for interface in config["Interfaces"]["interfaces"].split(","):
         if os.path.isdir('/sys/class/net/{}'.format(interface)):
             # Check if interface is connected

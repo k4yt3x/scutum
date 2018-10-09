@@ -3,13 +3,13 @@
 """
 Name: SCUTUM Installer Class
 Author: K4YT3X
-Date Created: Sep 26, 2017
-Last Modified: April 17, 2018
+Date Created: September 26, 2017
+Last Modified: October 9, 2018
 
 Description: Handles the installation, removal, configuring and
 upgrading for SCUTUM
 
-Version 1.9.1
+Version 1.9.3
 """
 from ufw import Ufw
 import avalon_framework as avalon
@@ -26,7 +26,7 @@ class Installer():
         self.SCUTUM_BIN_FILE = "/usr/bin/scutum"
         self.CONFPATH = CONFPATH
         self.INSTALL_DIR = INSTALL_DIR
-        self.INSTALLER_DIR = os.path.dirname(os.path.realpath(__file__))
+        self.INSTALLER_DIR = os.path.dirname(os.path.realpath(__file__)).replace('/bin', '')
         self.log = log
 
     def install_service(self):
@@ -37,7 +37,7 @@ class Installer():
             registered with update-rc.d. The service (unit) files will be
             created automagically.
             """
-            shutil.copyfile(self.INSTALL_DIR + "/scutum", "/etc/init.d/scutum")
+            shutil.copyfile(self.INSTALL_DIR + "/bin/scutum", "/etc/init.d/scutum")
             os.system("chmod 755 /etc/init.d/scutum")
             os.system("update-rc.d scutum defaults")
             # runlevels are now defined in the executable files in newer versions
@@ -50,7 +50,7 @@ class Installer():
             /usr/lib/systemd/system/ folder. systemctl command will look
             for service files in that folder.
             """
-            shutil.copyfile(self.INSTALL_DIR + "/scutum.service", "/usr/lib/systemd/system/scutum.service")
+            shutil.copyfile(self.INSTALL_DIR + "/res/scutum.service", "/usr/lib/systemd/system/scutum.service")
             if os.path.islink("/etc/systemd/system/multi-user.target.wants/scutum.service"):
                 # Let's just remove it in case of program structure update.
                 os.remove("/etc/systemd/system/multi-user.target.wants/scutum.service")
@@ -75,7 +75,7 @@ class Installer():
             if server_version > VERSION:
                 avalon.info('There\'s a newer version of SCUTUM!')
                 if avalon.ask('Update to the newest version?'):
-                    script_url = 'https://raw.githubusercontent.com/K4YT3X/scutum/master/quickinstall.sh'
+                    script_url = 'https://raw.githubusercontent.com/K4YT3X/scutum/master/bin/quickinstall.sh'
                     if not os.system("which curl"):
                         os.system("sudo sh -c \"$(curl -fsSL {})\"".format(script_url))
                     elif not os.system("which wget"):
@@ -135,13 +135,13 @@ class Installer():
         """
         if avalon.ask('Install ' + package + '?', True):
             if os.path.isfile('/usr/bin/apt'):
-                os.system('apt update && apt install ' + package + ' -y')  # install the package with apt
+                os.system('apt update && apt install {} -y'.format(package))  # install the package with apt
                 return True
             elif os.path.isfile('/usr/bin/yum'):
-                os.system('yum install ' + package + ' -y')  # install the package with yum
+                os.system('yum install {} -y'.format(package))  # install the package with yum
                 return True
             elif os.path.isfile('/usr/bin/pacman'):
-                os.system('pacman -S ' + package + ' --noconfirm')  # install the package with pacman
+                os.system('pacman -S {} --noconfirm'.format(package))  # install the package with pacman
                 return True
             else:
                 avalon.error('Sorry, we can\'t find a package manager that we currently support. Aborting..')
@@ -259,17 +259,14 @@ class Installer():
             os.remove("/usr/bin/openport")
         if os.path.islink("/usr/bin/closeport"):
             os.remove("/usr/bin/closeport")
-        os.system('ln -s {}/openport.py /usr/bin/openport'.format(self.INSTALL_DIR))
-        os.system("chmod 755 {}/openport.py".format(self.INSTALL_DIR))
-        os.system('ln -s {}/closeport.py /usr/bin/closeport'.format(self.INSTALL_DIR))
-        os.system("chmod 755 {}/closeport.py".format(self.INSTALL_DIR))
+        os.system('ln -s {}/bin/openport.py /usr/bin/openport'.format(self.INSTALL_DIR))
+        os.system('ln -s {}/bin/closeport.py /usr/bin/closeport'.format(self.INSTALL_DIR))
 
     def install_scutum_gui(self):
         DESKTOP_FILE = "/usr/share/applications/scutum-gui.desktop"
         if os.path.islink(DESKTOP_FILE) or os.path.isfile(DESKTOP_FILE):
             os.remove(DESKTOP_FILE)
-        os.system('ln -s {}/scutum-gui.desktop {}'.format(self.INSTALL_DIR, DESKTOP_FILE))
-        os.system("chmod 755 {}/scutum-gui.desktop".format(self.INSTALL_DIR))
+        os.system('ln -s {}/res/scutum-gui.desktop {}'.format(self.INSTALL_DIR, DESKTOP_FILE))
 
     def install(self):
         """
@@ -299,7 +296,7 @@ class Installer():
         if os.path.islink(self.SCUTUM_BIN_FILE) or os.path.isfile(self.SCUTUM_BIN_FILE):
             os.remove(self.SCUTUM_BIN_FILE)  # Remove old file or symbolic links
 
-        os.system("ln -s " + self.INSTALL_DIR + "/scutum.py " + self.SCUTUM_BIN_FILE)
+        os.system("ln -s " + self.INSTALL_DIR + "/bin/scutum.py " + self.SCUTUM_BIN_FILE)
 
         self.install_service()  # install and register service files
         os.system("systemctl enable scutum")  # enable service
