@@ -3,20 +3,21 @@
 
 # SCUTUM Firewall
 
+## WARNING: Current version might be unstable.
+
 ## Introduction
 
 **In short, SCUTUM configures your personal computer automatically against malicious TCP/UDP traffic and ARP spoofing attacks.** This software uses UFW to setup conventional firewall for you, determines and locks the gateway MAC address so you won't get ARP-spoofed.
 
 This software is designed to be compact and effective. Currently it can support only one interface at a time. Traffic will only be allowed on one interface. We are looking into possibilities of supporting multiple interfaces at once.
 
-## October 9, 2018 (2.8.0)
+## October 19, 2018
 
-1. Rearranged files thus making the entire repository cleaner and more readable.
-1. Minor bug fixes.
-
-### TODO
-
-1. Fix WICD support
+1. WICD seems to be working just fine.
+1. Abandoned all "os.system()" calls, replacing them with proper subprocess handling.
+1. Removed express port utilities as they are unnecessary.
+1. Unified the use of `'` and `"`.
+1. All SCUTUM logs will now go to `syslog`.
 
 ## Quick Install
 
