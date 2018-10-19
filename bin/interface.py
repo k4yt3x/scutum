@@ -4,18 +4,17 @@
 Name: SCUTUM Interface Class
 Author: K4YT3X
 Date Created: Sep 26, 2017
-Last Modified: April 17, 2018
+Last Modified: October 19, 2018
 
 Description: This class controls all system configuring activities
 ex. set arptables, set iptables, etc.
 
-Version 1.2
+Version 1.2.1
 """
-
+from avalon_framework import Avalon
 from installer import Installer
-import avalon_framework as avalon
-import os
 import re
+import shutil
 import socket
 import struct
 import subprocess
@@ -28,7 +27,7 @@ class Interface:
     This is the core part of this program (maybe, in some ways)
     """
 
-    def __init__(self, adapter, log):
+    def __init__(self, adapter):
         """
         Arguments:
             adapter {string} -- name of adapter to handle
@@ -40,11 +39,11 @@ class Interface:
         self.gateway_mac = False
         self.interface = adapter
         installer = Installer()
-        if not os.path.isfile('/usr/bin/arptables') and not os.path.isfile('/sbin/arptables'):  # Detect if arptables installed
-            print(avalon.FM.BD + avalon.FG.R + '\nWe have detected that you don\'t have arptables installed!' + avalon.FM.RST)
+        if shutil.which('arptables') is None:  # Detect if arptables installed
+            print(Avalon.FM.BD + Avalon.FG.R + '\nWe have detected that you don\'t have arptables installed!' + Avalon.FM.RST)
             print('SCUTUM requires arptables to run')
             if not installer.sysInstallPackage('arptables'):
-                avalon.error('arptables is required for scutum. Exiting...')
+                Avalon.error('arptables is required for scutum. Exiting...')
                 raise FileNotFoundError('File: \"/usr/bin/arptables\" and \"/sbin/arptables\" not found')
 
     def get_gateway(self):
