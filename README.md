@@ -3,8 +3,6 @@
 
 # SCUTUM Firewall
 
-## WARNING: Current version might be unstable.
-
 ## Introduction
 
 **In short, SCUTUM configures your personal computer automatically against malicious TCP/UDP traffic and ARP spoofing attacks.** This software uses UFW to setup conventional firewall for you, determines and locks the gateway MAC address so you won't get ARP-spoofed.
