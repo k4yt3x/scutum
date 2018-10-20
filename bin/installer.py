@@ -8,8 +8,6 @@ Last Modified: October 19, 2018
 
 Description: Handles the installation, removal, configuring and
 upgrading for SCUTUM
-
-Version 1.9.5
 """
 from avalon_framework import Avalon
 from ufw import Ufw
@@ -19,6 +17,8 @@ import os
 import shutil
 import subprocess
 import urllib.request
+
+VERSION = '1.9.6'
 
 
 class Installer():
@@ -220,14 +220,6 @@ class Installer():
 
         Avalon.info('SCUTUM successfully removed!')
         exit(0)
-
-    def install_easytcp_controllers(self):
-        if os.path.islink('/usr/bin/openport'):
-            os.remove('/usr/bin/openport')
-        if os.path.islink('/usr/bin/closeport'):
-            os.remove('/usr/bin/closeport')
-        Utilities.execute('ln', '-s', '{}/bin/openport.py'.format(self.INSTALL_DIR), '/usr/bin/openport')
-        Utilities.execute('ln', '-s', '{}/bin/closeport.py'.format(self.INSTALL_DIR), '/usr/bin/closeport')
 
     def install_scutum_gui(self):
         DESKTOP_FILE = '/usr/share/applications/scutum-gui.desktop'
