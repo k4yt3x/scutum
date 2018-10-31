@@ -4,7 +4,7 @@
 Name: SCUTUM Installer Class
 Author: K4YT3X
 Date Created: September 26, 2017
-Last Modified: October 19, 2018
+Last Modified: October 31, 2018
 
 Description: Handles the installation, removal, configuring and
 upgrading for SCUTUM
@@ -12,118 +12,26 @@ upgrading for SCUTUM
 from avalon_framework import Avalon
 from ufw import Ufw
 from utilities import Utilities
-import configparser
+import json
 import os
 import shutil
-import subprocess
-import urllib.request
 
-VERSION = '1.9.6'
+VERSION = '1.10.0'
 
 
 class Installer():
 
     def __init__(self, CONFPATH='/etc/scutum.conf', INSTALL_DIR='/usr/share/scutum'):
+
+        # Initialize constants
         self.SCUTUM_BIN_FILE = '/usr/bin/scutum'
         self.CONFPATH = CONFPATH
         self.INSTALL_DIR = INSTALL_DIR
         self.INSTALLER_DIR = os.path.dirname(os.path.realpath(__file__)).replace('/bin', '')
-
-    def install_service(self):
-        if os.path.isdir('/etc/init.d/'):
-            """
-            This is for debian-based systems. On debian, only an executable
-            script/file is needed. This file is usually in /etc/inid.d/ and
-            registered with update-rc.d. The service (unit) files will be
-            created automagically.
-            """
-            shutil.copyfile(self.INSTALL_DIR + '/bin/scutum', '/etc/init.d/scutum')
-            Utilities.execute(['chmod', '755', '/etc/init.d/scutum'])
-            Utilities.execute(['update-rc.d', 'scutum', 'defaults'])
-            # runlevels are now defined in the executable files in newer versions
-            # of systemd. Keeping this line for older systems
-            Utilities.execute(['update-rc.d', 'scutum', 'start', '10', '2', '3', '4', '5', '.', 'stop', '90', '0', '1', '6', '.'])
-        elif os.path.isdir('/usr/lib/systemd'):
-            """
-            This is for the old-fashion systemds. In old (maybe I'm wrong)
-            systemds, unit files are created manually. They are stored in
-            /usr/lib/systemd/system/ folder. systemctl command will look
-            for service files in that folder.
-            """
-            shutil.copyfile(self.INSTALL_DIR + '/res/scutum.service', '/usr/lib/systemd/system/scutum.service')
-            if os.path.islink('/etc/systemd/system/multi-user.target.wants/scutum.service'):
-                # Let's just remove it in case of program structure update.
-                os.remove('/etc/systemd/system/multi-user.target.wants/scutum.service')
-            Utilities.execute(['ln', '-s', '/usr/lib/systemd/system/scutum.service', '/etc/systemd/system/multi-user.target.wants/scutum.service'])
-
-    def check_version(self, VERSION):
-        """
-        Arguments:
-            VERSION {string} -- version number
-
-        Returns:
-            string -- server version number
-        """
-        Avalon.info(Avalon.FM.RST + 'Checking SCUTUM Version...')
-        with urllib.request.urlopen('https://raw.githubusercontent.com/K4YT3X/scutum/master/bin/scutum.py') as response:
-            html = response.read().decode().split('\n')
-            for line in html:
-                if 'VERSION = ' in line:
-                    server_version = line.split(' ')[-1].replace('\'', '')
-                    break
-            Avalon.debug_info('Server version: ' + server_version)
-            if server_version > VERSION:
-                Avalon.info('There\'s a newer version of SCUTUM!')
-                if Avalon.ask('Update to the newest version?'):
-                    script_url = 'https://raw.githubusercontent.com/K4YT3X/scutum/master/bin/quickinstall.sh'
-                    if shutil.which('curl'):
-                        Utilities.execute(['sudo', 'sh', '-c', '\"$(curl -fsSL {})\"'.format(script_url)])
-                    elif shutil.which('wget'):
-                        Utilities.execute(['sudo', 'sh', '-c', '\"$(wget {} -O -)\"'.format(script_url)])
-                    else:
-                        urllib.request.urlretrieve(script_url, '/tmp/quickinstall.sh')
-                        Utilities.execute(['sudo', 'bash', '/tmp/quickinstall.sh'])
-                else:
-                    Avalon.warning('Ignoring update')
-            else:
-                Avalon.info('SCUTUM is already on the newest version')
-        return server_version
-
-    def check_avalon(self):
-        """
-        Check avalon version and update avalon_framework
-        if necessary
-        """
-        Avalon.info(Avalon.FM.RST + 'Checking AVALON Framework Version...')
-        if shutil.which('pip3') is None:
-            Avalon.warning('pip3 not found, aborting version check')
-            return
-        avalon_version_check = subprocess.Popen(['pip3', 'freeze'], stdout=subprocess.PIPE).communicate()[0]
-        pipOutput = avalon_version_check.decode().split('\n')
-        for line in pipOutput:
-            if 'avalon-framework' in line:
-                local_version = line.split('==')[-1]
-
-        with urllib.request.urlopen('https://raw.githubusercontent.com/K4YT3X/AVALON/master/__init__.py') as response:
-            html = response.read().decode().split('\n')
-            for line in html:
-                if 'VERSION = ' in line:
-                    server_version = line.split(' ')[-1].replace('\'', '')
-                    break
-
-        if server_version > local_version:
-            Avalon.info('Here\'s a newer version of AVALON Framework: {}'.format(server_version))
-            if Avalon.ask('Update to the newest version?', True):
-                Utilities.execute(['pip3', 'install', '--upgrade', 'avalon_framework'])
-            else:
-                Avalon.warning('Ignoring update')
-        else:
-            Avalon.debug_info('Current version: ' + local_version)
-            Avalon.info('AVALON Framework is already on the newest version')
+        self.DESKTOP_FILE = '/usr/share/applications/scutum-gui.desktop'
 
     def install_wicd_scripts(self):
-        """
-        Write scutum scripts for WICD
+        """ Write scutum scripts for WICD
         """
         print(Avalon.FG.G + '[+] INFO: Installing for WICD' + Avalon.FM.RST + '.....', end='')
         if not os.path.isdir('/etc/wicd/'):
@@ -151,8 +59,7 @@ class Installer():
         return True
 
     def install_nm_scripts(self, interfaces):
-        """
-        Write scutum scripts for Network Manager
+        """ Write scutum scripts for Network Manager
         """
         print(Avalon.FG.G + '[+] INFO: Installing for NetworkManager' + Avalon.FM.RST + '.....', end='')
         if not os.path.isdir('/etc/NetworkManager/dispatcher.d/'):
@@ -190,6 +97,8 @@ class Installer():
         return True
 
     def remove_wicd_scripts(self):
+        """ Remove WICD SCUTUM scripts
+        """
         try:
             os.remove('/etc/wicd/scripts/postconnect/scutum_connect')
             os.remove('/etc/wicd/scripts/postdisconnect/scutum_disconnect')
@@ -197,45 +106,16 @@ class Installer():
             pass
 
     def remove_nm_scripts(self):
+        """ Remove Network Manager SCUTUM scripts
+        """
         try:
             os.remove('/etc/NetworkManager/dispatcher.d/scutum')
         except FileNotFoundError:
             pass
 
-    def remove_scutum(self):
-        self.remove_wicd_scripts()
-        self.remove_nm_scripts()
-        Utilities.execute(['ufw', '--force', 'reset'])  # Reset ufw configurations
-        Utilities.execute(['rm', '-f', '/etc/ufw/*.*.*'])  # Delete automatic backups
-
-        RMLIST = ['/usr/bin/scutum', self.INSTALL_DIR, self.CONFPATH, '/var/log/scutum.log',
-                  '/usr/lib/systemd/system/scutum.service', '/etc/init.d/scutum',
-                  '/etc/systemd/system/multi-user.target.wants/scutum.service']
-
-        for path in RMLIST:
-            if os.path.isfile(path) or os.path.islink(path):
-                os.remove(path)
-            elif os.path.isdir(path):
-                shutil.rmtree(path)
-
-        Avalon.info('SCUTUM successfully removed!')
-        exit(0)
-
-    def install_scutum_gui(self):
-        DESKTOP_FILE = '/usr/share/applications/scutum-gui.desktop'
-        if os.path.islink(DESKTOP_FILE) or os.path.isfile(DESKTOP_FILE):
-            os.remove(DESKTOP_FILE)
-        Utilities.execute(['ln', '-s', '{}/res/scutum-gui.desktop'.format(self.INSTALL_DIR), DESKTOP_FILE])
-
-    def install(self):
+    def _install_scutum_files(self):
+        """ Install all SCUTUM files into system
         """
-        This is the main function for installer
-        """
-        config = configparser.ConfigParser()
-        config['Interfaces'] = {}
-        config['NetworkControllers'] = {}
-        config['Ufw'] = {}
-
         print(Avalon.FM.BD + 'Choose Installation Directory (Enter for default)' + Avalon.FM.RST)
         installation_dir = Avalon.gets('Choose Installation Path (\"/usr/share/scutum\"):')
         if installation_dir.strip(' ') != '' and installation_dir[-1] == '/':
@@ -247,29 +127,92 @@ class Installer():
         else:
             Avalon.info('Using default installation directory: {}{}{}'.format(Avalon.FM.BD, self.INSTALL_DIR, Avalon.FM.RST))
 
+        # If files are not already in place
         if self.INSTALLER_DIR != self.INSTALL_DIR:
             if os.path.isdir(self.INSTALL_DIR):
                 shutil.rmtree(self.INSTALL_DIR)  # delete existing old scutum files
             shutil.copytree(self.INSTALLER_DIR, self.INSTALL_DIR)
 
+        # Remove executable in PATH if exists
         if os.path.islink(self.SCUTUM_BIN_FILE) or os.path.isfile(self.SCUTUM_BIN_FILE):
             os.remove(self.SCUTUM_BIN_FILE)  # Remove old file or symbolic links
 
+        # Link scutum main executable to PATH
+        # This will allow user to use the "scutum" command
         Utilities.execute(['ln', '-s', '{}/bin/scutum.py'.format(self.INSTALL_DIR), self.SCUTUM_BIN_FILE])
 
-        self.install_service()  # install and register service files
-        Utilities.execute(['systemctl', 'enable', 'scutum'])  # enable service
-        Utilities.execute(['systemctl', 'start', 'scutum'])  # start service
+    def _install_service(self):
+        """ Install SCUTUM service
+        """
+        if os.path.isdir('/etc/init.d/'):
+            """
+            This is for debian-based systems. On debian, only an executable
+            script/file is needed. This file is usually in /etc/inid.d/ and
+            registered with update-rc.d. The service (unit) files will be
+            created automagically.
+            """
+            shutil.copyfile(self.INSTALL_DIR + '/bin/scutum', '/etc/init.d/scutum')
+            Utilities.execute(['chmod', '755', '/etc/init.d/scutum'])
+            Utilities.execute(['update-rc.d', 'scutum', 'defaults'])
+            # runlevels are now defined in the executable files in newer versions
+            # of systemd. Keeping this line for older systems
+            Utilities.execute(['update-rc.d', 'scutum', 'start', '10', '2', '3', '4', '5', '.', 'stop', '90', '0', '1', '6', '.'])
+        elif os.path.isdir('/usr/lib/systemd'):
+            """
+            This is for the old-fashion systemds. In old (maybe I'm wrong)
+            systemds, unit files are created manually. They are stored in
+            /usr/lib/systemd/system/ folder. systemctl command will look
+            for service files in that folder.
+            """
+            shutil.copyfile(self.INSTALL_DIR + '/res/scutum.service', '/usr/lib/systemd/system/scutum.service')
+            if os.path.islink('/etc/systemd/system/multi-user.target.wants/scutum.service'):
+                # Let's just remove it in case of program structure update.
+                os.remove('/etc/systemd/system/multi-user.target.wants/scutum.service')
+            Utilities.execute(['ln', '-s', '/usr/lib/systemd/system/scutum.service', '/etc/systemd/system/multi-user.target.wants/scutum.service'])
 
-        if not os.path.isfile('/usr/bin/arptables') and not os.path.isfile('/sbin/arptables'):  # Detect if arptables installed
-            print(Avalon.FM.BD + Avalon.FG.R + '\nWe have detected that you don\'t have arptables installed!' + Avalon.FM.RST)
-            print('SCUTUM requires arptables to run')
-            if not Utilities.install_package('arptables'):
-                Avalon.error('arptables is required for scutum. Exiting...')
+        # Enable service
+        Utilities.execute(['systemctl', 'enable', 'scutum'])
+        Utilities.execute(['systemctl', 'start', 'scutum'])
+
+    def _get_arp_controller_driver(self):
+        """ Choose ARP controller driver
+        """
+        print(Avalon.FM.BD + '\nConfigure ARP Controller Driver' + Avalon.FM.RST)
+        while True:
+            driver = Avalon.gets('Please choose an ARP controller driver (netfilter/arptables): ')
+            if driver == 'netfilter' or driver == 'arptables':
+                self.config['ArpController']['driver'] = driver
+                break
+            else:
+                Avalon.error('Invalid ARP controller driver chosen')
+
+    def _install_arp_controller_driver(self):
+        """ Install the CLI tool if not installed
+        """
+        if self.config['ArpController']['driver'] == 'netfilter':
+            binary = 'nft'
+        elif self.config['ArpController']['driver'] == 'arptables':
+            binary = 'arptables'
+
+        if shutil.which(binary) is None:
+            Avalon.warning('ARP controller driver is not installed')
+            if Avalon.ask('Install {} ?'.format(self.config['ArpController']['driver'])):
+                Utilities.install_package(self.config['ArpController']['driver'])
+            else:
+                Avalon.error('ARP controller driver not installed')
+                Avalon.error('SCUTUM relies on the driver to run')
+                Avalon.error('Aborting installation')
                 exit(1)
 
+    def _get_controlled_interfaces(self):
+        """ Get interfaces to be controlled by SCUTUM
+        """
+
+        # Get controlled interfaces
         ifaces_selected = []
         ifaces = []
+
+        # List all available interfaces
         with open('/proc/net/dev', 'r') as dev:
             for line in dev:
                 try:
@@ -277,6 +220,8 @@ class Installer():
                         ifaces.append(line.split(':')[0])
                 except IndexError:
                     pass
+
+        # Enroll controlled interfaces
         while True:
             print(Avalon.FM.BD + '\nWhich interface do you want scutum to control?' + Avalon.FM.RST)
             if not len(ifaces) == 0:
@@ -308,8 +253,12 @@ class Installer():
                 Avalon.error('Invalid Input!')
                 Avalon.error('Please enter the index number!')
 
-        config['Interfaces']['interfaces'] = ','.join(ifaces_selected)
+        # Put controlled interfaces into configuraion
+        self.config['Interfaces']['interfaces'] = ifaces_selected
 
+    def _get_controlled_nm(self):
+        """ Ask which network controller to hook to
+        """
         while True:
             print(Avalon.FM.BD + '\nWhich network controller do you want to install for?' + Avalon.FM.RST)
             print('1. WICD')
@@ -323,32 +272,35 @@ class Installer():
                     Avalon.error('SCUTUM Script for WICD has failed to install!')
                     Avalon.error('Aborting Installation...')
                     exit(1)
-                config['NetworkControllers']['controllers'] = 'wicd'
+                self.config['NetworkControllers']['controllers'] = 'wicd'
                 break
             elif selection == '2':
-                if self.install_nm_scripts(ifaces_selected) is not True:
+                if self.install_nm_scripts(self.config['Interfaces']['interfaces']) is not True:
                     Avalon.error('SCUTUM Script for NetworkManager has failed to install!')
                     Avalon.error('Aborting Installation...')
                     exit(1)
-                config['NetworkControllers']['controllers'] = 'NetworkManager'
+                self.config['NetworkControllers']['controllers'] = 'NetworkManager'
                 break
             elif selection == '3':
                 ifaces = ['wicd', 'NetworkManager']
                 if self.install_wicd_scripts() is not True:
                     Avalon.warning('Deselected WICD from installation')
                     ifaces.remove('wicd')
-                if self.install_nm_scripts(ifaces_selected) is not True:
+                if self.install_nm_scripts(self.config['Interfaces']['interfaces']) is not True:
                     Avalon.warning('Deselected NetworkManager from installation')
                     ifaces.remove('NetworkManager')
                 if len(ifaces) == 0:
                     Avalon.error('All SCUTUM Scripts have failed to install!')
                     Avalon.error('Aborting Installation...')
                     exit(1)
-                config['NetworkControllers']['controllers'] = ','.join(ifaces)
+                self.config['NetworkControllers']['controllers'] = ifaces
                 break
             else:
                 Avalon.error('Invalid Input!')
 
+    def _setup_ufw(self):
+        """ Enable UFW to controll the firewall
+        """
         print(Avalon.FM.BD + '\nEnable UFW firewall?' + Avalon.FM.RST)
         print('Do you want SCUTUM to help configuring and enabling UFW firewall?')
         print('This will prevent a lot of scanning and attacks')
@@ -365,19 +317,78 @@ class Installer():
 
             print('If you let SCUTUM handle UFW, then UFW will be activated and deactivated with SCUTUM')
             if Avalon.ask('Let SCUTUM handle UFW?', True):
-                config['Ufw']['handled'] = 'true'
+                self.config['Ufw']['handled'] = 'true'
             else:
-                config['Ufw']['handled'] = 'false'
+                self.config['Ufw']['handled'] = 'false'
         else:
-            config['Ufw']['handled'] = 'false'
+            self.config['Ufw']['handled'] = 'false'
             Avalon.info('You can turn it on whenever you change your mind')
 
+    def _install_scutum_gui(self):
+        """ Install SCUTUM GUI
+        """
         print(Avalon.FM.BD + '\nInstall SCUTUM GUI?' + Avalon.FM.RST)
         print('SCUTUM GUI is convenient for GUI Interfaces')
         print('ex. KDE, GNOME, XFCE, etc.')
         print('However, there\'s not point to install GUI on servers')
         if Avalon.ask('Install SCUTUM GUI?', True):
-            self.install_scutum_gui()
+            if os.path.islink(self.DESKTOP_FILE) or os.path.isfile(self.DESKTOP_FILE):
+                os.remove(self.DESKTOP_FILE)
+            Utilities.execute(['ln', '-s', '{}/res/scutum-gui.desktop'.format(self.INSTALL_DIR), self.DESKTOP_FILE])
 
+    def install(self):
+        """ Install SCUTUM
+
+        This method will install all SCUTUM files and components
+        """
+
+        # Initialize configuration containers
+        self.config = {}
+        self.config['Interfaces'] = {}
+        self.config['NetworkControllers'] = {}
+        self.config['Ufw'] = {}
+        self.config['ArpController'] = {}
+
+        self._install_scutum_files()
+        self._install_service()
+        self._get_arp_controller_driver()
+        self._install_arp_controller_driver()
+        self._get_controlled_interfaces()
+        self._get_controlled_nm()
+        self._setup_ufw()
+        self._install_scutum_gui()
+
+        # Export the configuration into configuration file
         with open(self.CONFPATH, 'w') as configfile:
-            config.write(configfile)  # Writes configurations
+            json.dump(self.config, configfile, indent=2)
+            configfile.close()
+
+    def uninstall(self):
+        """ Remove SCUTUM completely
+
+        This method will remove all SCUTUM files from
+        the system. It is yet to be tested completely.
+        """
+        self.remove_wicd_scripts()
+        self.remove_nm_scripts()
+        Utilities.execute(['ufw', '--force', 'reset'])  # Reset ufw configurations
+        Utilities.execute(['rm', '-f', '/etc/ufw/*.*.*'])  # Delete automatic backups
+
+        # A list of files, directories and links to remove
+        rmlist = ['/usr/bin/scutum',
+                  self.INSTALL_DIR,
+                  self.CONFPATH,
+                  '/var/log/scutum.log',
+                  '/usr/lib/systemd/system/scutum.service', '/etc/init.d/scutum',
+                  '/etc/systemd/system/multi-user.target.wants/scutum.service'
+                  ]
+
+        # Remove all files in rmlist
+        for path in rmlist:
+            if os.path.isfile(path) or os.path.islink(path):
+                os.remove(path)
+            elif os.path.isdir(path):
+                shutil.rmtree(path)
+
+        Avalon.info('SCUTUM removed successfully!')
+        exit(0)
