@@ -30,19 +30,9 @@ Licensed under the GNU General Public License Version 3 (GNU GPL v3),
 
 (C) 2016 - 2018 K4YT3X
 
-Description: SCUTUM is a firewall designed for personal computers that mainly
-focuses on ARP defensing
-
-For WICD and Network-Manager
-
-For tutorial please look at the Github Page: https://github.com/K4YT3X/SCUTUM
-
-
-KNOWN ISSUES:
-1. If the service is started manually when connecting to
-a network, the command will hang until the Internet is connected
-(when an IP address is assigned, when gateway address is defined)
-
+Description: SCUTUM is a firewall designed for personal computers that
+integrates with WICD and NetworkManager.
+For tutorial please look at the GitHub Page: https://github.com/K4YT3X/scutum.
 """
 from arpcontroller import ArpController
 from avalon_framework import Avalon
@@ -96,28 +86,27 @@ def process_arguments():
     parser = argparse.ArgumentParser()
     control_group = parser.add_argument_group('Controls')
     control_group.add_argument('-i', '--interface', help='Run SCUTUM on specified interface', action='store', default=False)
-    control_group.add_argument('--start', help='Enable SCUTUM once before shutdown', action='store_true', default=False)
-    control_group.add_argument('--enable', help='Enable SCUTUM', action='store_true', default=False)
-    control_group.add_argument('--disable', help='Disable SCUTUM', action='store_true', default=False)
+    control_group.add_argument('-s', '--start', help='Enable SCUTUM once before shutdown', action='store_true', default=False)
+    control_group.add_argument('-r', '--reset', help='Disable SCUTUM temporarily before the next connection', action='store_true', default=False)
+    control_group.add_argument('-e', '--enable', help='Enable SCUTUM', action='store_true', default=False)
+    control_group.add_argument('-d', '--disable', help='Disable SCUTUM', action='store_true', default=False)
     control_group.add_argument('--status', help='Show SCUTUM current status', action='store_true', default=False)
     control_group.add_argument('--enableufw', help='Enable SCUTUM generic firewall', action='store_true', default=False)
-    control_group.add_argument('--disableufw', help='Disnable SCUTUM generic firewall', action='store_true', default=False)
-    control_group.add_argument('--reset', help='Disable SCUTUM temporarily before the next connection', action='store_true', default=False)
+    control_group.add_argument('--disableufw', help='Disable SCUTUM generic firewall', action='store_true', default=False)
     inst_group = parser.add_argument_group('Installation')
-    inst_group.add_argument('--install', help='Install Scutum Automatically', action='store_true', default=False)
-    inst_group.add_argument('--uninstall', help='Uninstall Scutum Automatically', action='store_true', default=False)
+    inst_group.add_argument('--install', help='Install SCUTUM', action='store_true', default=False)
+    inst_group.add_argument('--uninstall', help='Uninstall SCUTUM', action='store_true', default=False)
     etc = parser.add_argument_group('Extra')
-    etc.add_argument('--version', help='Show SCUTUM version and exit', action='store_true', default=False)
+    etc.add_argument('-v', '--version', help='Show SCUTUM version and exit', action='store_true', default=False)
     return parser.parse_args()
 
 
 def update_arp():
-    """ Operates arptables directly and
-    locks gateway mac addresses
+    """ Update gateway MAC address
 
     This function creates an instance for each handled
-    interface and updates it's corresponded gateway mac
-    address into arptables.
+    interface and locks it's corresponded gateway mac
+    address into nftables or arptables.
     """
 
     # reset arptables, removing all rules and
