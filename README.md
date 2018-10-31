@@ -9,13 +9,13 @@
 
 This software is designed to be compact and effective. Currently it can support only one interface at a time. Traffic will only be allowed on one interface. We are looking into possibilities of supporting multiple interfaces at once.
 
-## October 19, 2018
+## 2.10.0 (October 31, 2018)
 
-1. WICD seems to be working just fine.
-1. Abandoned all "os.system()" calls, replacing them with proper subprocess handling.
-1. Removed express port utilities as they are unnecessary.
-1. Unified the use of `'` and `"`.
-1. All SCUTUM logs will now go to `syslog`.
+1. Changed configuration file to JSON
+   - Please delete the old INI config and reinstall `scutum`.
+1. Added support for `netfilter`.
+1. Grouped sections of code into methods for easier code maintenance.
+1. Optimized code.
 
 ## Quick Install
 
