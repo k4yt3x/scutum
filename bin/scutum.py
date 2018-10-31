@@ -23,7 +23,7 @@
 Name: SCUTUM Firewall
 Author: K4YT3X
 Date of Creation: March 8, 2017
-Last Modified: October 19, 2018
+Last Modified: October 31, 2018
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -44,22 +44,23 @@ a network, the command will hang until the Internet is connected
 (when an IP address is assigned, when gateway address is defined)
 
 """
+from arpcontroller import ArpController
 from avalon_framework import Avalon
 from installer import Installer
 from interface import Interface
 from ufw import Ufw
 from utilities import Utilities
 import argparse
-import configparser
+import json
 import os
+import sys
 import syslog
 import traceback
-import urllib.request
 
-CONFPATH = '/etc/scutum.conf'
+CONFPATH = '/etc/scutum.json'
 
 # This is the master version number
-VERSION = '2.9.0'
+VERSION = '2.10.0'
 
 
 # -------------------------------- Functions
@@ -106,13 +107,12 @@ def process_arguments():
     inst_group = parser.add_argument_group('Installation')
     inst_group.add_argument('--install', help='Install Scutum Automatically', action='store_true', default=False)
     inst_group.add_argument('--uninstall', help='Uninstall Scutum Automatically', action='store_true', default=False)
-    inst_group.add_argument('--upgrade', help='Check SCUTUM & AVALON Framework Updates', action='store_true', default=False)
     etc = parser.add_argument_group('Extra')
     etc.add_argument('--version', help='Show SCUTUM version and exit', action='store_true', default=False)
     return parser.parse_args()
 
 
-def update_arptables():
+def update_arp():
     """operates arptables directly and
     locks gateway mac addresses
 
@@ -123,7 +123,7 @@ def update_arptables():
 
     # reset arptables, removing all rules and
     # accept all incoming packages
-    Utilities.execute(['arptables', '--flush'])
+    ac.flush_all()
 
     if args.interface:
         interface = Interface(args.interface)
@@ -132,8 +132,7 @@ def update_arptables():
         Avalon.info('GATEWAY_MAC={}'.format(interface.gateway_mac), log=True)
         Avalon.info('SELF_IP={}'.format(interface.get_ip()), log=True)
         if interface.gateway_mac:
-            Utilities.execute(['arptables', '-P', 'INPUT', 'DROP'])
-            Utilities.execute(['arptables', '-A', 'INPUT', '--source-mac', interface.gateway_mac, '-j', 'ACCEPT'])
+            ac.block(interface.gateway_mac)
     else:
         # Create one instance for each interface
         for interface in interfaces:
@@ -150,11 +149,10 @@ def update_arptables():
 
         for interface in ifaceobjs:
             if interface.gateway_mac:
-                Utilities.execute(['arptables', '-P', 'INPUT', 'DROP'])
-                Utilities.execute(['arptables', '-A', 'INPUT', '--source-mac', interface.gateway_mac, '-j', 'ACCEPT'])
+                ac.append_allowed_mac(interface.gateway_mac)
 
 
-def initialize():
+def read_config():
     """ Parses configuration
     This function parses the configuration file and
     load the configurations into the program
@@ -167,18 +165,26 @@ def initialize():
         raise FileNotFoundError(CONFPATH)
 
     # Initialize python confparser and read config
-    config = configparser.ConfigParser()
-    config.read(CONFPATH)
+    with open(CONFPATH, 'r') as raw_config:
+        config = json.load(raw_config)
 
-    # Read sections from the configuration file
+    # Get controlled interfaces
     interfaces = []
-    for interface in config['Interfaces']['interfaces'].split(','):
+    for interface in config['Interfaces']['interfaces']:
         if os.path.isdir('/sys/class/net/{}'.format(interface)):
             # Check if interface is connected
             interfaces.append(interface)
+
+    # Get controlled network controllers
     network_controllers = config['NetworkControllers']['controllers']
+
+    # Check if we should handle ufw
     ufw_handled = bool(config['Ufw']['handled'])
-    return config, interfaces, network_controllers, ufw_handled
+
+    # Get ARP Controller driver
+    arp_driver = config['ArpController']['driver']
+
+    return interfaces, network_controllers, ufw_handled, arp_driver
 
 
 # -------------------------------- Execute
@@ -212,21 +218,13 @@ elif os.getuid() != 0:  # Multiple components require root access
 
 exit_code = 0
 installer = Installer(CONFPATH)
-
-if args.upgrade or args.install:
-    try:
-        installer.check_avalon()
-        installer.check_version(VERSION)
-    except urllib.error.URLError:
-        pass
-    if args.upgrade:
-        exit(exit_code)
+ac = ArpController()
 
 try:
     if not (args.install or args.uninstall):
         # if program is doing normal operations, log everything
         # pointless if purging log, installing/removing
-        config, interfaces, network_controllers, ufw_handled = initialize()
+        interfaces, network_controllers, ufw_handled, arp_driver = read_config()
 
     if args.install:
         # Install scutum into system
@@ -241,30 +239,27 @@ try:
         # Removes scutum completely from the system
         # Note that the configuration file will be removed too
         if Avalon.ask('Removal Confirm: ', False):
-            installer.remove_scutum()
+            installer.uninstall()
         else:
             Avalon.warning('Removal Canceled')
     elif args.reset:
         # resets the arptable, ufw and accept all incoming connections
         # This will expose the computer entirely on the network
-        Utilities.execute(['arptables', '-P', 'INPUT', 'ACCEPT'])
-        Utilities.execute(['arptables', '--flush'])
+        ac.flush_all()
         if ufw_handled is True:
-                ufwctrl = Ufw()
-                ufwctrl.disable()
+            ufwctrl = Ufw()
+            ufwctrl.disable()
         Avalon.info('RESETED')
     elif args.enable or args.disable:
         if args.enable:
             # Enable scutum will write scrips for wicd and network-manager
             # scutum will be started automatically
-            if 'wicd' in network_controllers.split(','):
+            if 'wicd' in network_controllers:
                 installer.install_wicd_scripts()
-            if 'NetworkManager' in network_controllers.split(','):
-                installer.install_nm_scripts(config['NetworkControllers']['controllers'].split(','))
+            if 'NetworkManager' in network_controllers:
+                installer.install_nm_scripts(network_controllers)
             ifaceobjs = []  # a list to store internet controller objects
-            Utilities.execute(['arptables', '-P', 'INPUT', 'ACCEPT'])  # Accept to get Gateway Cached
-
-            update_arptables()
+            ac.flush_all()  # Accept to get Gateway Cached
 
             if ufw_handled is True:
                 # if ufw is handled by scutum, enable it
@@ -277,8 +272,7 @@ try:
             # Firewalls will be reseted and expose the computer completely
             installer.remove_nm_scripts()
             installer.remove_wicd_scripts()
-            Utilities.execute(['arptables', '-P', 'INPUT', 'ACCEPT'])
-            Utilities.execute(['arptables', '--flush'])
+            ac.flush_all()
             if ufw_handled is True:
                 ufwctrl = Ufw()
                 ufwctrl.disable()
@@ -293,9 +287,7 @@ try:
             ufwctrl.disable()
     else:
         ifaceobjs = []  # a list to store internet controller objects
-        Utilities.execute(['arptables', '-P', 'INPUT', 'ACCEPT'])  # Accept to get Gateway Cached
-
-        update_arptables()
+        update_arp()
 
         if ufw_handled is True:
             ufwctrl = Ufw()
@@ -305,15 +297,21 @@ except KeyboardInterrupt:
     Avalon.warning('KeyboardInterrupt caught')
     Avalon.warning('Exiting')
     exit_code = 1
-    syslog.syslog(syslog.LOG_ERR, traceback.format_exc())
+    error_string = traceback.format_exc()
+    print(error_string, file=sys.stderr)
+    syslog.syslog(syslog.LOG_ERR, error_string)
 except KeyError:
     Avalon.error('The program configuration file is broken for some reason')
     Avalon.error('You should reinstall SCUTUM to repair the configuration file\n')
     exit_code = 1
-    syslog.syslog(syslog.LOG_ERR, traceback.format_exc())
+    error_string = traceback.format_exc()
+    print(error_string, file=sys.stderr)
+    syslog.syslog(syslog.LOG_ERR, error_string)
 except Exception as e:
     Avalon.error('SCUTUM has encountered an error')
     exit_code = 1
-    syslog.syslog(syslog.LOG_ERR, traceback.format_exc())
+    error_string = traceback.format_exc()
+    print(error_string, file=sys.stderr)
+    syslog.syslog(syslog.LOG_ERR, error_string)
 finally:
     exit(exit_code)
