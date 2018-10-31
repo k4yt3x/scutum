@@ -20,6 +20,12 @@ VERSION = '1.10.0'
 
 
 class Installer():
+    """ SCUTUM Installer
+
+    This is the installer for SCUTUM. It handles
+    all the installations, file installation and
+    removal.
+    """
 
     def __init__(self, CONFPATH='/etc/scutum.conf', INSTALL_DIR='/usr/share/scutum'):
 

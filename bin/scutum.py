@@ -65,9 +65,8 @@ VERSION = '2.10.0'
 
 # -------------------------------- Functions
 
-
 def print_icon():
-    """Print SCUTUM icon
+    """ Print SCUTUM icon
 
     Credits goes to messletters.com
     """
@@ -81,7 +80,7 @@ def print_icon():
 
 
 def process_arguments():
-    """This function parses all arguments
+    """ This function parses all arguments
 
     There are three groups of arguments.
 
@@ -101,8 +100,8 @@ def process_arguments():
     control_group.add_argument('--enable', help='Enable SCUTUM', action='store_true', default=False)
     control_group.add_argument('--disable', help='Disable SCUTUM', action='store_true', default=False)
     control_group.add_argument('--status', help='Show SCUTUM current status', action='store_true', default=False)
-    control_group.add_argument('--enablegeneric', help='Enable SCUTUM generic firewall', action='store_true', default=False)
-    control_group.add_argument('--disablegeneric', help='Disnable SCUTUM generic firewall', action='store_true', default=False)
+    control_group.add_argument('--enableufw', help='Enable SCUTUM generic firewall', action='store_true', default=False)
+    control_group.add_argument('--disableufw', help='Disnable SCUTUM generic firewall', action='store_true', default=False)
     control_group.add_argument('--reset', help='Disable SCUTUM temporarily before the next connection', action='store_true', default=False)
     inst_group = parser.add_argument_group('Installation')
     inst_group.add_argument('--install', help='Install Scutum Automatically', action='store_true', default=False)
@@ -113,7 +112,7 @@ def process_arguments():
 
 
 def update_arp():
-    """operates arptables directly and
+    """ Operates arptables directly and
     locks gateway mac addresses
 
     This function creates an instance for each handled
@@ -194,60 +193,65 @@ args = process_arguments()
 if not (args.enable or args.disable):
     print_icon()
 
+# Unprivileged Section
 if args.version:  # prints program legal / dev / version info
-    print('Current Version: ' + VERSION)
+    print('Current Version: {}'.format(VERSION))
     print('Author: K4YT3X')
     print('License: GNU GPL v3')
     print('Github Page: https://github.com/K4YT3X/scutum')
     print('Contact: k4yt3x@k4yt3x.com\n')
     exit(0)
 elif args.status:
-    """
-    Asks systemd-sysv-install if scutum is enabled
-    by systemctl. May not apply to non-Debian distros
-    """
+    # Asks systemd-sysv-install if scutum is enabled
+    # by systemctl. May not apply to non-Debian distros
     if Utilities.execute(['/lib/systemd/systemd-sysv-install', 'is-enabled', 'scutum']):
         Avalon.info('{}SCUTUM is {}{}{}\n'.format(Avalon.FM.RST, Avalon.FG.R, 'NOT ENABLED', Avalon.FM.RST))
     else:
         Avalon.info('{}SCUTUM is {}{}{}\n'.format(Avalon.FM.RST, Avalon.FG.G, 'ENABLED', Avalon.FM.RST))
     exit(0)
-elif os.getuid() != 0:  # Multiple components require root access
-    Avalon.error('SCUTUM must be run as root!')
-    print(Avalon.FG.LGR + 'It requires root privilege to operate the system' + Avalon.FM.RST)
+elif os.getuid() != 0:
+    # Multiple components require root access
+    Avalon.error('SCUTUM must be run as root')
+    Avalon.error('Exiting')
     exit(1)
 
+# Set an exit code
 exit_code = 0
-installer = Installer(CONFPATH)
-ac = ArpController()
 
+# Privileged Section
 try:
     if not (args.install or args.uninstall):
         # if program is doing normal operations, log everything
         # pointless if purging log, installing/removing
         interfaces, network_controllers, ufw_handled, arp_driver = read_config()
 
+        # Initialize objects
+        installer = Installer(CONFPATH)
+        ac = ArpController()
+        if ufw_handled:
+            ufwctrl = Ufw()
+
     if args.install:
         # Install scutum into system
         Avalon.info('Starting installation procedure')
         installer.install()
         print('\n' + Avalon.FM.BD, end='')
-        Avalon.info('Installation Complete!')
+        Avalon.info('Installation completed')
         Avalon.info('SCUTUM service is now enabled on system startup')
         Avalon.info('You can now control it with systemd')
         Avalon.info('You can also control it manually with \"scutum\" command')
     elif args.uninstall:
         # Removes scutum completely from the system
         # Note that the configuration file will be removed too
-        if Avalon.ask('Removal Confirm: ', False):
+        if Avalon.ask('Removal confirmation: ', False):
             installer.uninstall()
         else:
-            Avalon.warning('Removal Canceled')
+            Avalon.warning('Removal canceled')
     elif args.reset:
         # resets the arptable, ufw and accept all incoming connections
         # This will expose the computer entirely on the network
         ac.flush_all()
         if ufw_handled is True:
-            ufwctrl = Ufw()
             ufwctrl.disable()
         Avalon.info('RESETED')
     elif args.enable or args.disable:
@@ -261,9 +265,8 @@ try:
             ifaceobjs = []  # a list to store internet controller objects
             ac.flush_all()  # Accept to get Gateway Cached
 
-            if ufw_handled is True:
+            if ufw_handled:
                 # if ufw is handled by scutum, enable it
-                ufwctrl = Ufw()
                 ufwctrl.enable()
             Avalon.info('ENABLED')
         elif args.disable:
@@ -273,24 +276,21 @@ try:
             installer.remove_nm_scripts()
             installer.remove_wicd_scripts()
             ac.flush_all()
-            if ufw_handled is True:
-                ufwctrl = Ufw()
+            if ufw_handled:
                 ufwctrl.disable()
             Avalon.info('DISABLED')
-    elif args.enablegeneric or args.disablegeneric:
+    elif args.enableufw or args.disableufw:
         # you can choose to make scutum to handle ufw
         # after the installation
-        ufwctrl = Ufw()
-        if args.enablegeneric:
+        if args.enableufw:
             ufwctrl.enable()
-        elif args.disablegeneric:
+        elif args.disableufw:
             ufwctrl.disable()
     else:
         ifaceobjs = []  # a list to store internet controller objects
         update_arp()
 
-        if ufw_handled is True:
-            ufwctrl = Ufw()
+        if ufw_handled:
             ufwctrl.enable()
         Avalon.info('OK')
 except KeyboardInterrupt:
