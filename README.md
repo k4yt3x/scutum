@@ -67,7 +67,7 @@ Quick install above is recommended
 
 ```
 git clone https://github.com/K4YT3X/scutum.git
-cd SCUTUM/
+cd scutum/bin
 sudo python3 scutum.py --install
 ```
 
