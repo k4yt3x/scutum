@@ -209,13 +209,15 @@ exit_code = 0
 
 # Privileged Section
 try:
+    # Initialize installer
+    installer = Installer(CONFPATH)
+
     if not (args.install or args.uninstall):
         # if program is doing normal operations, log everything
         # pointless if purging log, installing/removing
         interfaces, network_controllers, ufw_handled, arp_driver = read_config()
 
         # Initialize objects
-        installer = Installer(CONFPATH)
         ac = ArpController()
         if ufw_handled:
             ufwctrl = Ufw()
