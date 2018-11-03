@@ -9,6 +9,11 @@
 
 This software is designed to be compact and effective. Currently it can support only one interface at a time. Traffic will only be allowed on one interface. We are looking into possibilities of supporting multiple interfaces at once.
 
+## 2.10.0 (November 2, 2018)
+
+1. Fixed the problem when SCUTUM is first enabled, gateway MAC address is not
+   cached and locked.
+
 ## 2.10.0 (October 31, 2018)
 
 1. Changed configuration file to JSON
