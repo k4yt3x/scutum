@@ -14,19 +14,19 @@
 import os
 import sys
 
+exit_code = 0
+
 try:
-    if sys.argv[1] == "start":
-        os.system("scutum --enable")
-        exit(0)
-    elif sys.argv[1] == "stop":
-        os.system("scutum --disable")
-        exit(0)
-    elif sys.argv[1] == "restart":
-        os.system("scutum --reset")
-        os.system("scutum")
-        exit(0)
+    if sys.argv[1] == 'start':
+        exit_code += os.system('scutum --enable')
+    elif sys.argv[1] == 'stop':
+        exit_code += os.system('scutum --disable')
+    elif sys.argv[1] == 'restart':
+        exit_code += os.system('scutum --reset')
+        exit_code += os.system('scutum')
     else:
-        print("Usage: scutum {start|stop|status|restart}")
-        exit(0)
+        print('Usage: scutum {start|stop|status|restart}')
 except Exception as e:
-    print("Usage: scutum {start|stop|status|restart}")
+    print('Usage: scutum {start|stop|status|restart}')
+finally:
+    exit(exit_code)
