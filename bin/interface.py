@@ -9,12 +9,9 @@ Last Modified: October 19, 2018
 Description: This class controls all system configuring activities
 ex. set arptables, set iptables, etc.
 
-Version 1.2.1
+Version 1.2.2
 """
-from avalon_framework import Avalon
-from installer import Installer
 import re
-import shutil
 import socket
 import struct
 import subprocess
@@ -38,13 +35,6 @@ class Interface:
         """
         self.gateway_mac = False
         self.interface = adapter
-        installer = Installer()
-        if shutil.which('arptables') is None:  # Detect if arptables installed
-            print(Avalon.FM.BD + Avalon.FG.R + '\nWe have detected that you don\'t have arptables installed!' + Avalon.FM.RST)
-            print('SCUTUM requires arptables to run')
-            if not installer.sysInstallPackage('arptables'):
-                Avalon.error('arptables is required for scutum. Exiting...')
-                raise FileNotFoundError('File: \"/usr/bin/arptables\" and \"/sbin/arptables\" not found')
 
     def get_gateway(self):
         """Get Linux Default Gateway"""
