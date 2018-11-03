@@ -23,7 +23,7 @@
 Name: SCUTUM Firewall
 Author: K4YT3X
 Date of Creation: March 8, 2017
-Last Modified: October 31, 2018
+Last Modified: November 2, 2018
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -50,7 +50,7 @@ import traceback
 CONFPATH = '/etc/scutum.json'
 
 # This is the master version number
-VERSION = '2.10.0'
+VERSION = '2.10.1'
 
 
 # -------------------------------- Functions
@@ -183,6 +183,8 @@ if not (args.enable or args.disable):
     print_icon()
 
 # Unprivileged Section
+
+# If '--version'
 if args.version:  # prints program legal / dev / version info
     print('Current Version: {}'.format(VERSION))
     print('Author: K4YT3X')
@@ -190,6 +192,8 @@ if args.version:  # prints program legal / dev / version info
     print('Github Page: https://github.com/K4YT3X/scutum')
     print('Contact: k4yt3x@k4yt3x.com\n')
     exit(0)
+
+# If '--status'
 elif args.status:
     # Asks systemd-sysv-install if scutum is enabled
     # by systemctl. May not apply to non-Debian distros
@@ -198,6 +202,8 @@ elif args.status:
     else:
         Avalon.info('{}SCUTUM is {}{}{}\n'.format(Avalon.FM.RST, Avalon.FG.G, 'ENABLED', Avalon.FM.RST))
     exit(0)
+
+# If user not root (UID != 0)
 elif os.getuid() != 0:
     # Multiple components require root access
     Avalon.error('SCUTUM must be run as root')
@@ -213,8 +219,8 @@ try:
     installer = Installer(CONFPATH)
 
     if not (args.install or args.uninstall):
-        # if program is doing normal operations, log everything
-        # pointless if purging log, installing/removing
+        # Some objects don't need to be initialized during
+        # installation or uninstallation
         interfaces, network_controllers, ufw_handled, arp_driver = read_config()
 
         # Initialize objects
@@ -222,6 +228,7 @@ try:
         if ufw_handled:
             ufwctrl = Ufw()
 
+    # If '--install'
     if args.install:
         # Install scutum into system
         Avalon.info('Starting installation procedure')
@@ -231,6 +238,8 @@ try:
         Avalon.info('SCUTUM service is now enabled on system startup')
         Avalon.info('You can now control it with systemd')
         Avalon.info('You can also control it manually with \"scutum\" command')
+
+    # If '--uninstall'
     elif args.uninstall:
         # Removes scutum completely from the system
         # Note that the configuration file will be removed too
@@ -238,6 +247,8 @@ try:
             installer.uninstall()
         else:
             Avalon.warning('Removal canceled')
+
+    # If '--reset'
     elif args.reset:
         # resets the arptable, ufw and accept all incoming connections
         # This will expose the computer entirely on the network
@@ -245,38 +256,45 @@ try:
         if ufw_handled is True:
             ufwctrl.disable()
         Avalon.info('RESETED')
-    elif args.enable or args.disable:
-        if args.enable:
-            # Enable scutum will write scrips for wicd and network-manager
-            # scutum will be started automatically
-            if 'wicd' in network_controllers:
-                installer.install_wicd_scripts()
-            if 'NetworkManager' in network_controllers:
-                installer.install_nm_scripts(network_controllers)
-            ifaceobjs = []  # a list to store internet controller objects
-            ac.flush_all()  # Accept to get Gateway Cached
 
-            if ufw_handled:
-                # if ufw is handled by scutum, enable it
-                ufwctrl.enable()
-            Avalon.info('ENABLED')
-        elif args.disable:
-            # This will disable scutum entirely and ufw too if it
-            # is handled by scutum. scutum will not be started automatically
-            # Firewalls will be reseted and expose the computer completely
-            installer.remove_nm_scripts()
-            installer.remove_wicd_scripts()
-            ac.flush_all()
-            if ufw_handled:
-                ufwctrl.disable()
-            Avalon.info('DISABLED')
-    elif args.enableufw or args.disableufw:
-        # you can choose to make scutum to handle ufw
-        # after the installation
-        if args.enableufw:
+    # If '--enable'
+    elif args.enable:
+        # Enable scutum will write scrips for wicd and network-manager
+        # scutum will be started automatically
+        if 'wicd' in network_controllers:
+            installer.install_wicd_scripts()
+        if 'NetworkManager' in network_controllers:
+            installer.install_nm_scripts(network_controllers)
+
+        # Lock gateway MAC on current networks
+        ifaceobjs = []
+        update_arp()
+
+        if ufw_handled:
             ufwctrl.enable()
-        elif args.disableufw:
+        Avalon.info('ENABLED')
+
+    # If '--disable'
+    elif args.disable:
+        # This will disable scutum entirely and ufw too if it
+        # is handled by scutum. scutum will not be started automatically
+        # Firewalls will be reseted and expose the computer completely
+        installer.remove_nm_scripts()
+        installer.remove_wicd_scripts()
+        ac.flush_all()
+        if ufw_handled:
             ufwctrl.disable()
+        Avalon.info('DISABLED')
+
+    # If '--enableufw'
+    elif args.enableufw:
+        ufwctrl.enable()
+
+    # If '--disableufw'
+    elif args.disableufw:
+        ufwctrl.disable()
+
+    # If no arguments given
     else:
         ifaceobjs = []  # a list to store internet controller objects
         update_arp()
