@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Name: SCUTUM Utilities
+Name: K4YT3X Generic Utilities
 Author: K4YT3X
 Date Created: October 19, 2018
-Last Modified: October 19, 2018
+Last Modified: November 4, 2018
 
 Description: This class contains some useful utilities.
 """
@@ -14,7 +14,7 @@ import shutil
 import subprocess
 import sys
 
-VERSION = '1.0.1'
+VERSION = '1.0.2'
 
 
 class Utilities:
@@ -33,19 +33,19 @@ class Utilities:
             process = subprocess.Popen(command, stdin=sys.stdin, stdout=std_out, stderr=std_err)
             return process.communicate()[0].decode().split('\n')
 
-    def install_package(package):
+    def install_packages(packages):
         """ Install a package using system package manager
         """
         Avalon.warning('If the installation is unsuccessful, you should consider updating the package manager cache', log=False)
-        if Avalon.ask('Install {}?'.format(package), True):
+        if Avalon.ask('Install {}?'.format(' '.join(packages)), True):
             if shutil.which('apt-get'):
-                os.system('apt-get install {} -y'.format(package))
+                os.system('apt-get install {} -y'.format(' '.join(packages)))
                 return True
             elif shutil.which('yum'):
-                os.system('yum install {} -y'.format(package))
+                os.system('yum install {} -y'.format(' '.join(packages)))
                 return True
             elif shutil.which('pacman'):
-                os.system('pacman -S {} --noconfirm'.format(package))
+                os.system('pacman -S {} --noconfirm'.format(' '.join(packages)))
                 return True
             else:
                 Avalon.error('Sorry, we can\'t find a package manager that we currently support. Aborting..')
