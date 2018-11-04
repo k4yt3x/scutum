@@ -231,13 +231,7 @@ try:
     # If '--install'
     if args.install:
         # Install scutum into system
-        Avalon.info('Starting installation procedure')
         installer.install()
-        print('\n' + Avalon.FM.BD, end='')
-        Avalon.info('Installation completed')
-        Avalon.info('SCUTUM service is now enabled on system startup')
-        Avalon.info('You can now control it with systemd')
-        Avalon.info('You can also control it manually with \"scutum\" command')
 
     # If '--uninstall'
     elif args.uninstall:

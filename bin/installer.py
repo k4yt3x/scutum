@@ -366,6 +366,8 @@ class Installer():
         This method will install all SCUTUM files and components
         """
 
+        Avalon.info('Starting installation procedure')
+
         # Initialize configuration containers
         self.config = {}
         self.config['Interfaces'] = {}
@@ -386,6 +388,12 @@ class Installer():
         with open(self.CONFPATH, 'w') as configfile:
             json.dump(self.config, configfile, indent=2)
             configfile.close()
+
+        print('\n' + Avalon.FM.BD, end='')
+        Avalon.info('SCUTUM installation completed')
+        Avalon.info('SCUTUM service is now enabled on system startup')
+        Avalon.info('You can now control it with systemd')
+        Avalon.info('You can also control it manually via the \"scutum\" command')
 
     def uninstall(self):
         """ Remove SCUTUM completely
