@@ -184,9 +184,17 @@ class Installer():
         """ Choose ARP controller driver
         """
         print(Avalon.FM.BD + '\nConfigure ARP Controller Driver' + Avalon.FM.RST)
+
+        # Inform the user which driver is active on current system
+        if shutil.which('nft'):
+            Avalon.info('nftables is available')
+
+        if shutil.which('arptables'):
+            Avalon.info('arptables is available')
+
         while True:
-            driver = Avalon.gets('Please choose an ARP controller driver (netfilter/arptables): ')
-            if driver == 'netfilter' or driver == 'arptables':
+            driver = Avalon.gets('Please choose an ARP controller driver (nftables/arptables): ')
+            if driver == 'nftables' or driver == 'arptables':
                 self.config['ArpController']['driver'] = driver
                 break
             else:
@@ -195,17 +203,15 @@ class Installer():
     def _install_arp_controller_driver(self):
         """ Install the CLI tool if not installed
         """
-        if self.config['ArpController']['driver'] == 'netfilter':
+        if self.config['ArpController']['driver'] == 'nftables':
             binary = 'nft'
-            package_name = 'nftables'
         elif self.config['ArpController']['driver'] == 'arptables':
             binary = 'arptables'
-            package_name = 'arptables'
 
         if shutil.which(binary) is None:
             Avalon.warning('ARP controller driver is not installed')
-            if Avalon.ask('Install {} ?'.format(package_name), True):
-                Utilities.install_packages(package_name)
+            if Avalon.ask('Install {} ?'.format(self.config['ArpController']['driver']), True):
+                Utilities.install_packages(self.config['ArpController']['driver'])
             else:
                 Avalon.error('ARP controller driver not installed')
                 Avalon.error('SCUTUM relies on the driver to run')
