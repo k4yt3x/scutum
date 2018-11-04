@@ -9,7 +9,7 @@ Last Modified: October 31, 2018
 Description: This class controls all ARP
 related operations.
 
-Version 1.0.0
+Version 1.0.1
 """
 from avalon_framework import Avalon
 from utilities import Utilities
@@ -22,14 +22,14 @@ class ArpController():
     related to ARP, such as blocking and allowing.
     """
 
-    def __init__(self, driver='netfilter'):
+    def __init__(self, driver='nftables'):
 
         self.driver = driver
 
-        if self.driver != 'netfilter' and self.driver != 'arptables':
+        if self.driver != 'nftables' and self.driver != 'arptables':
             Avalon.warning('Unrecognized ARP controller driver {}'.format(self.driver))
-            Avalon.warning('Falling back to netfilter')
-            self.driver = 'netfilter'
+            Avalon.warning('Falling back to nftables')
+            self.driver = 'nftables'
 
     def append_allowed_mac(self, mac_address, interface=False):
         """ Allow the traffic from this MAC address
