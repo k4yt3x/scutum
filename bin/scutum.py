@@ -39,10 +39,10 @@ from avalon_framework import Avalon
 from installer import Installer
 from interface import Interface
 from ufw import Ufw
-from utilities import Utilities
 import argparse
 import json
 import os
+import subprocess
 import sys
 import syslog
 import traceback
@@ -197,7 +197,7 @@ if args.version:  # prints program legal / dev / version info
 elif args.status:
     # Asks systemd-sysv-install if scutum is enabled
     # by systemctl. May not apply to non-Debian distros
-    if Utilities.execute(['/lib/systemd/systemd-sysv-install', 'is-enabled', 'scutum']):
+    if subprocess.run(['/lib/systemd/systemd-sysv-install', 'is-enabled', 'scutum']).returncode:
         Avalon.info('{}SCUTUM is {}{}{}\n'.format(Avalon.FM.RST, Avalon.FG.R, 'NOT ENABLED', Avalon.FM.RST))
     else:
         Avalon.info('{}SCUTUM is {}{}{}\n'.format(Avalon.FM.RST, Avalon.FG.G, 'ENABLED', Avalon.FM.RST))
