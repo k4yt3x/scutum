@@ -167,7 +167,7 @@ def read_config():
     network_controllers = config['NetworkControllers']['controllers']
 
     # Check if we should handle ufw
-    ufw_handled = bool(config['Ufw']['handled'])
+    ufw_handled = config['Ufw']['handled']
 
     # Get ARP Controller driver
     arp_driver = config['ArpController']['driver']
