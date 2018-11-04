@@ -14,7 +14,7 @@ import shutil
 import subprocess
 import sys
 
-VERSION = '1.0.3'
+VERSION = '1.0.4'
 
 
 class Utilities:
@@ -48,19 +48,13 @@ class Utilities:
         else:
             packages_string = packages[0]
 
-        if Avalon.ask('Install {}?'.format(packages_string), True):
-            if shutil.which('apt-get'):
-                os.system('apt-get install {} -y'.format(packages_string))
-                return True
-            elif shutil.which('yum'):
-                os.system('yum install {} -y'.format(packages_string))
-                return True
-            elif shutil.which('pacman'):
-                os.system('pacman -S {} --noconfirm'.format(packages_string))
-                return True
-            else:
-                Avalon.error('Sorry, we can\'t find a package manager that we currently support. Aborting..')
-                Avalon.error('Currently Supported: apt, yum, pacman')
-                return False
+        if shutil.which('apt-get'):
+            return os.system('apt-get install {} -y'.format(packages_string))
+        elif shutil.which('yum'):
+            return os.system('yum install {} -y'.format(packages_string))
+        elif shutil.which('pacman'):
+            return os.system('pacman -S {} --noconfirm'.format(packages_string))
         else:
+            Avalon.error('Sorry, we can\'t find a package manager that we currently support. Aborting..')
+            Avalon.error('Currently Supported: apt, yum, pacman')
             return False
