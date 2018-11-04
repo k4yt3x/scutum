@@ -4,7 +4,7 @@
 Name: SCUTUM Installer Class
 Author: K4YT3X
 Date Created: September 26, 2017
-Last Modified: October 31, 2018
+Last Modified: November 4, 2018
 
 Description: Handles the installation, removal, configuring and
 upgrading for SCUTUM
@@ -16,7 +16,7 @@ import json
 import os
 import shutil
 
-VERSION = '1.10.0'
+VERSION = '1.10.1'
 
 
 class Installer():
@@ -197,13 +197,15 @@ class Installer():
         """
         if self.config['ArpController']['driver'] == 'netfilter':
             binary = 'nft'
+            package_name = 'nftables'
         elif self.config['ArpController']['driver'] == 'arptables':
             binary = 'arptables'
+            package_name = 'arptables'
 
         if shutil.which(binary) is None:
             Avalon.warning('ARP controller driver is not installed')
-            if Avalon.ask('Install {} ?'.format(self.config['ArpController']['driver'])):
-                Utilities.install_package(self.config['ArpController']['driver'])
+            if Avalon.ask('Install {} ?'.format(package_name), True):
+                Utilities.install_packages(package_name)
             else:
                 Avalon.error('ARP controller driver not installed')
                 Avalon.error('SCUTUM relies on the driver to run')
