@@ -16,7 +16,7 @@ import json
 import os
 import shutil
 
-VERSION = '1.10.1'
+VERSION = '1.10.2'
 
 
 class Installer():
@@ -41,7 +41,7 @@ class Installer():
         """
         print(Avalon.FG.G + '[+] INFO: Installing for WICD' + Avalon.FM.RST + '.....', end='')
         if not os.path.isdir('/etc/wicd/'):
-            print(Avalon.FG.G + Avalon.FM.BD + 'ERROR' + Avalon.FM.RST)
+            print(Avalon.FG.R + Avalon.FM.BD + 'ERROR' + Avalon.FM.RST)
             Avalon.warning('WICD folder not found! WICD does not appear to be installed!')
             if Avalon.ask('Continue anyway? (Create Directories)', False):
                 Utilities.execute(['mkdir', '-p', '/etc/wicd/scripts/postconnect/'])
@@ -69,7 +69,7 @@ class Installer():
         """
         print(Avalon.FG.G + '[+] INFO: Installing for NetworkManager' + Avalon.FM.RST + '.....', end='')
         if not os.path.isdir('/etc/NetworkManager/dispatcher.d/'):
-            print(Avalon.FG.G + Avalon.FM.BD + 'ERROR' + Avalon.FM.RST)
+            print(Avalon.FG.R + Avalon.FM.BD + 'ERROR' + Avalon.FM.RST)
             Avalon.warning('NetworkManager folders not found! NetworkManager does not appear to be installed!')
             if Avalon.ask('Continue anyway? (Create Directories)', False):
                 Utilities.execute(['mkdir', '-p', '/etc/NetworkManager/dispatcher.d/'])
@@ -317,10 +317,20 @@ class Installer():
         """
         print(Avalon.FM.BD + '\nEnable UFW firewall?' + Avalon.FM.RST)
         print('Do you want SCUTUM to help configuring and enabling UFW firewall?')
-        print('This will prevent a lot of scanning and attacks')
+        print('This may help preventing a lot of scanning and attacks')
         if Avalon.ask('Enable?', True):
+
+            # If ufw is not installed
+            if shutil.which('ufw') is None:
+                if Avalon.ask('UFW is not installed. Install?', True):
+                    Utilities.install_packages(['ufw'])
+                else:
+                    Avalon.warning('UFW package not available, disabling UFW')
+                    self.config['Ufw']['handled'] = False
+                    return
+
             ufwctrl = Ufw()
-            print('UFW can configure UFW Firewall for you')
+            print('SCUTUM can configure UFW Firewall for you')
             print('However this will reset your current UFW configurations')
             print('It is recommended to do so the first time you install SCUTUM')
             if Avalon.ask('Let SCUTUM configure UFW for you?', True):
@@ -331,11 +341,11 @@ class Installer():
 
             print('If you let SCUTUM handle UFW, then UFW will be activated and deactivated with SCUTUM')
             if Avalon.ask('Let SCUTUM handle UFW?', True):
-                self.config['Ufw']['handled'] = 'true'
+                self.config['Ufw']['handled'] = True
             else:
-                self.config['Ufw']['handled'] = 'false'
+                self.config['Ufw']['handled'] = False
         else:
-            self.config['Ufw']['handled'] = 'false'
+            self.config['Ufw']['handled'] = False
             Avalon.info('You can turn it on whenever you change your mind')
 
     def _install_scutum_gui(self):
