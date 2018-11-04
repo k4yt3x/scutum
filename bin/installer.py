@@ -210,7 +210,7 @@ class Installer():
 
         if shutil.which(binary) is None:
             Avalon.warning('ARP controller driver is not installed')
-            if Avalon.ask('Install {} ?'.format(self.config['ArpController']['driver']), True):
+            if Avalon.ask('Install {}?'.format(self.config['ArpController']['driver']), True):
                 Utilities.install_packages([self.config['ArpController']['driver']])
             else:
                 Avalon.error('ARP controller driver not installed')
