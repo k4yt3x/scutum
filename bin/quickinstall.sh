@@ -2,18 +2,23 @@
 # Name: SCUTUM QuickInstall Script
 # Author: K4YT3X
 # Date Created: Sep 27, 2017
-# Last Modified: October 9, 2018
+# Last Modified: November 12, 2018
+# Version 1.1.1
 
-# Description: Installs SCUTUM
+# Check if user is root
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root" 
+   exit 1
+fi
 
-# Version 1.1
-
+# Remove older versions of scutum
 if [ -d "/usr/share/scutum/" ]; then
   echo "Removing old SCUTUM files..."
   rm -rf /usr/share/scutum/
 fi
 
-
+# Clone the newest version of scutum
 git clone https://github.com/K4YT3X/scutum.git /usr/share/scutum
-cd /usr/share/scutum/bin
-/usr/bin/env python3 scutum.py --install
+
+# Run installation
+/usr/bin/env python3 /usr/share/scutum/bin/scutum.py --install
