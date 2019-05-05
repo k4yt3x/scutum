@@ -4,7 +4,7 @@
 Name: SCUTUM Installer Class
 Author: K4YT3X
 Date Created: September 26, 2017
-Last Modified: November 4, 2018
+Last Modified: April 22, 2019
 
 Description: Handles the installation, removal, configuring and
 upgrading for SCUTUM
@@ -15,8 +15,6 @@ from utilities import Utilities
 import json
 import os
 import shutil
-
-VERSION = '1.10.2'
 
 
 class Installer():
@@ -126,12 +124,12 @@ class Installer():
         installation_dir = Avalon.gets('Choose Installation Path (\"/usr/share/scutum\"):')
         if installation_dir.strip(' ') != '' and installation_dir[-1] == '/':
             self.INSTALL_DIR = installation_dir[0:-1]  # strip last '/' if exists. breaks program path format
-            Avalon.info('Changed installation directory to: {}{}{}'.format(Avalon.FM.BD, self.INSTALL_DIR, Avalon.FM.RST))
+            Avalon.info(f'Changed installation directory to: {Avalon.FM.BD}{self.INSTALL_DIR}{Avalon.FM.RST}')
         elif installation_dir.strip(' ') != '':
             self.INSTALL_DIR = installation_dir
-            Avalon.info('Changed installation directory to: {}{}{}'.format(Avalon.FM.BD, self.INSTALL_DIR, Avalon.FM.RST))
+            Avalon.info(f'Changed installation directory to: {Avalon.FM.BD}{self.INSTALL_DIR}{Avalon.FM.RST}')
         else:
-            Avalon.info('Using default installation directory: {}{}{}'.format(Avalon.FM.BD, self.INSTALL_DIR, Avalon.FM.RST))
+            Avalon.info(f'Using default installation directory: {Avalon.FM.BD}{self.INSTALL_DIR}{Avalon.FM.RST}')
 
         # If files are not already in place
         if self.INSTALLER_DIR != self.INSTALL_DIR:
@@ -145,7 +143,7 @@ class Installer():
 
         # Link scutum main executable to PATH
         # This will allow user to use the "scutum" command
-        Utilities.execute(['ln', '-s', '{}/bin/scutum.py'.format(self.INSTALL_DIR), self.SCUTUM_BIN_FILE])
+        Utilities.execute(['ln', '-s', f'{self.INSTALL_DIR}/bin/scutum.py', self.SCUTUM_BIN_FILE])
 
     def _install_service(self):
         """ Install SCUTUM service
@@ -210,7 +208,7 @@ class Installer():
 
         if shutil.which(binary) is None:
             Avalon.warning('ARP controller driver is not installed')
-            if Avalon.ask('Install {}?'.format(self.config['ArpController']['driver']), True):
+            if Avalon.ask(f'Install {self.config["ArpController"]["driver"]}?', True):
                 Utilities.install_packages([self.config['ArpController']['driver']])
             else:
                 Avalon.error('ARP controller driver not installed')
@@ -239,11 +237,11 @@ class Installer():
         while True:
             print(Avalon.FM.BD + '\nWhich interface do you want scutum to control?' + Avalon.FM.RST)
             if not len(ifaces) == 0:
-                idx = 0
+                index = 0
                 for iface in ifaces:
                     if iface.replace(' ', '') not in ifaces_selected:
-                        print('{}. {}'.format(str(idx), iface.replace(' ', '')))
-                    idx += 1
+                        print(f'{str(index)}. {iface.replace(" ", "")}')
+                    index += 1
             print('x. Manually Enter')
             print(Avalon.FM.BD + 'Press [ENTER] when complete' + Avalon.FM.RST)
             selection = Avalon.gets('Please select (index number): ')
@@ -358,7 +356,7 @@ class Installer():
         if Avalon.ask('Install SCUTUM GUI?', True):
             if os.path.islink(self.DESKTOP_FILE) or os.path.isfile(self.DESKTOP_FILE):
                 os.remove(self.DESKTOP_FILE)
-            Utilities.execute(['ln', '-s', '{}/res/scutum-gui.desktop'.format(self.INSTALL_DIR), self.DESKTOP_FILE])
+            Utilities.execute(['ln', '-s', f'{self.INSTALL_DIR}/res/scutum-gui.desktop', self.DESKTOP_FILE])
 
     def install(self):
         """ Install SCUTUM
