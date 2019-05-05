@@ -4,7 +4,7 @@
 Name: K4YT3X Generic Utilities
 Author: K4YT3X
 Date Created: October 19, 2018
-Last Modified: November 4, 2018
+Last Modified: April 22, 2019
 
 Description: This class contains some useful utilities.
 """
@@ -13,8 +13,6 @@ import os
 import shutil
 import subprocess
 import sys
-
-VERSION = '1.0.4'
 
 
 class Utilities:
@@ -49,11 +47,11 @@ class Utilities:
             packages_string = packages[0]
 
         if shutil.which('apt-get'):
-            return os.system('apt-get install {} -y'.format(packages_string))
+            return os.system(f'apt-get install {packages_string} -y')
         elif shutil.which('yum'):
-            return os.system('yum install {} -y'.format(packages_string))
+            return os.system(f'yum install {packages_string} -y')
         elif shutil.which('pacman'):
-            return os.system('pacman -S {} --noconfirm'.format(packages_string))
+            return os.system(f'pacman -S {packages_string} --noconfirm')
         else:
             Avalon.error('Sorry, we can\'t find a package manager that we currently support. Aborting..')
             Avalon.error('Currently Supported: apt, yum, pacman')
