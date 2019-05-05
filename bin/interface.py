@@ -4,12 +4,10 @@
 Name: SCUTUM Interface Class
 Author: K4YT3X
 Date Created: Sep 26, 2017
-Last Modified: October 19, 2018
+Last Modified: April 22, 2019
 
 Description: This class controls all system configuring activities
 ex. set arptables, set iptables, etc.
-
-Version 1.2.2
 """
 import re
 import socket
@@ -74,7 +72,7 @@ class Interface:
 
     def is_up(self):
         # Determine if interface is up
-        with open('/sys/class/net/{}/operstate'.format(self.interface), "r") as state:
+        with open(f'/sys/class/net/{self.interface}/operstate', 'r') as state:
             for line in state:
                 if 'up' in line.lower():
                     return True
