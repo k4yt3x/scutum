@@ -4,12 +4,10 @@
 Name: SCUTUM ufw Class
 Author: K4YT3X
 Date Created: Sep 15, 2017
-Last Modified: October 19, 2018
+Last Modified: April 22, 2019
 
 Description: This class controls TCP/UDP/ICMP traffic
 using ufw.
-
-Version 1.4.2
 """
 from avalon_framework import Avalon
 from utilities import Utilities
@@ -81,8 +79,8 @@ class Ufw:
         Arguments:
             port {int} -- Port number
         """
-        Avalon.info('[UFW]: Allowing port {}\n\n'.format(str(port)))
-        Utilities.execute(['ufw', 'allow', '{}/tcp'.format(str(port))])
+        Avalon.info(f'[UFW]: Allowing port {str(port)}\n\n')
+        Utilities.execute(['ufw', 'allow', f'{str(port)}/tcp'])
 
     def expire(self, port):
         """
@@ -91,5 +89,5 @@ class Ufw:
         Arguments:
             port {int} -- Port number
         """
-        Avalon.info('[UFW]: Expiring port {}\n\n'.format(str(port)))
-        Utilities.execute(['ufw', '--force', 'delete', 'allow', '{}/tcp'.format(str(port))])
+        Avalon.info(f'[UFW]: Expiring port {str(port)}\n\n')
+        Utilities.execute(['ufw', '--force', 'delete', 'allow', f'{str(port)}/tcp'])
