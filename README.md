@@ -9,6 +9,11 @@
 
 This software is designed to be compact and effective. Currently it can support only one interface at a time. Traffic will only be allowed on one interface. We are looking into possibilities of supporting multiple interfaces at once.
 
+## 2.10.2 (May 5, 2019)
+
+1. Fixed nftables ARP issues. ARP packets are now correctly blocked in the arp table instead of inet.
+1. Replaced format strings with f-strings.
+
 ## 2.10.0 (November 2, 2018)
 
 1. Fixed the problem when SCUTUM is first enabled, gateway MAC address is not
