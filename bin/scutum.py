@@ -1,34 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    ╬##################╬
-    ##       ##       ##
-    ##  #    ##    #  ##
-    ##  #    ##    #  ##
-    ##  #    ##    #  ##
-    ##   #   ##   #   ##
-    ##    ## ## ##    ##     ___   __  _  _  ____  _  _  __  __
-    ##      ####      ##    / __) / _)( )( )(_  _)( )( )(  \/  )
-    ####################    \__ \( (_  )()(   )(   )()(  )    (
-    ##      ####      ##    (___/ \__) \__/  (__)  \__/ (_/\/\_)
-    ##    ## ## ##    ##
-    ##   #   ##   #   ##               ARP Firewall
-    ##  #    ##    #  ##
-    ##  #    ##    #  ##
-    ##  #    ##    #  ##
-    ##       ##       ##
-    ╬##################╬
-
-
 Name: SCUTUM Firewall
 Author: K4YT3X
 Date of Creation: March 8, 2017
-Last Modified: November 2, 2018
+Last Modified: May 5, 2019
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
 
-(C) 2016 - 2018 K4YT3X
+(C) 2016-2019 K4YT3X
+
+SCUTUM is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+SCUTUM is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Description: SCUTUM is a firewall designed for personal computers that
 integrates with WICD and NetworkManager.
@@ -47,26 +41,8 @@ import sys
 import syslog
 import traceback
 
-CONFPATH = '/etc/scutum.json'
-
-# This is the master version number
-VERSION = '2.10.1'
-
-
-# -------------------------------- Functions
-
-def print_icon():
-    """ Print SCUTUM icon
-
-    Credits goes to messletters.com
-    """
-    print(Avalon.FM.BD + '     ___   __  _  _  ____  _  _  __  __' + Avalon.FM.RST)
-    print(Avalon.FM.BD + '    / __) / _)( )( )(_  _)( )( )(  \/  )' + Avalon.FM.RST)
-    print(Avalon.FM.BD + '    \__ \( (_  )()(   )(   )()(  )    (' + Avalon.FM.RST)
-    print(Avalon.FM.BD + '    (___/ \__) \__/  (__)  \__/ (_/\/\_)' + Avalon.FM.RST)
-    print('\n               ARP Firewall')
-    spaces = ((32 - len('Version ' + VERSION)) // 2) * ' '
-    print(Avalon.FM.BD + '\n' + spaces + '    Version ' + VERSION + '\n' + Avalon.FM.RST)
+# master version number
+VERSION = '2.10.2'
 
 
 def process_arguments():
@@ -83,22 +59,43 @@ def process_arguments():
     The last groups, Extra, contains only a version function
     for now.
     """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    # general firewall controls
     control_group = parser.add_argument_group('Controls')
-    control_group.add_argument('-i', '--interface', help='Run SCUTUM on specified interface', action='store', default=False)
-    control_group.add_argument('-s', '--start', help='Enable SCUTUM once before shutdown', action='store_true', default=False)
-    control_group.add_argument('-r', '--reset', help='Disable SCUTUM temporarily before the next connection', action='store_true', default=False)
-    control_group.add_argument('-e', '--enable', help='Enable SCUTUM', action='store_true', default=False)
-    control_group.add_argument('-d', '--disable', help='Disable SCUTUM', action='store_true', default=False)
-    control_group.add_argument('--status', help='Show SCUTUM current status', action='store_true', default=False)
-    control_group.add_argument('--enableufw', help='Enable SCUTUM generic firewall', action='store_true', default=False)
-    control_group.add_argument('--disableufw', help='Disable SCUTUM generic firewall', action='store_true', default=False)
-    inst_group = parser.add_argument_group('Installation')
-    inst_group.add_argument('--install', help='Install SCUTUM', action='store_true', default=False)
-    inst_group.add_argument('--uninstall', help='Uninstall SCUTUM', action='store_true', default=False)
+    control_group.add_argument('-i', '--interface', help='run SCUTUM on specified interface', action='store')
+    control_group.add_argument('-s', '--start', help='enable SCUTUM once before shutdown', action='store_true')
+    control_group.add_argument('-r', '--reset', help='disable SCUTUM temporarily before the next connection', action='store_true')
+    control_group.add_argument('-e', '--enable', help='enable SCUTUM', action='store_true')
+    control_group.add_argument('-d', '--disable', help='Disable SCUTUM', action='store_true')
+    control_group.add_argument('-c', '--config', help='specify config file location', action='store', default='/etc/scutum.json')
+    control_group.add_argument('--status', help='show SCUTUM current status', action='store_true')
+    control_group.add_argument('--enableufw', help='enable SCUTUM generic firewall', action='store_true')
+    control_group.add_argument('--disableufw', help='disable SCUTUM generic firewall', action='store_true')
+
+    # installation controls
+    install_group = parser.add_argument_group('Installation')
+    install_group.add_argument('--install', help='Install SCUTUM', action='store_true')
+    install_group.add_argument('--uninstall', help='Uninstall SCUTUM', action='store_true')
+
+    # extra arguments
     etc = parser.add_argument_group('Extra')
-    etc.add_argument('-v', '--version', help='Show SCUTUM version and exit', action='store_true', default=False)
+    etc.add_argument('-v', '--version', help='Show SCUTUM version and exit', action='store_true')
     return parser.parse_args()
+
+
+def print_icon():
+    """ print SCUTUM icon
+
+    icon generated using messletters.com
+    """
+    print(f'{Avalon.FM.BD}     ___   __  _  _  ____  _  _  __  __{Avalon.FM.RST}')
+    print(f'{Avalon.FM.BD}    / __) / _)( )( )(_  _)( )( )(  \/  ){Avalon.FM.RST}')
+    print(f'{Avalon.FM.BD}    \__ \( (_  )()(   )(   )()(  )    ({Avalon.FM.RST}')
+    print(f'{Avalon.FM.BD}    (___/ \__) \__/  (__)  \__/ (_/\/\_){Avalon.FM.RST}')
+    print('\n               ARP Firewall')
+    spaces = ((32 - len(f'Version {VERSION}')) // 2) * ' '
+    print(f'{Avalon.FM.BD}\n{spaces}    Version {VERSION}\n{Avalon.FM.RST}')
 
 
 def update_arp():
@@ -116,26 +113,26 @@ def update_arp():
     if args.interface:
         interface = Interface(args.interface)
         interface.update_gateway_addrs()
-        Avalon.info('ADAPTER={}'.format(interface.interface), log=True)
-        Avalon.info('GATEWAY_MAC={}'.format(interface.gateway_mac), log=True)
-        Avalon.info('SELF_IP={}'.format(interface.get_ip()), log=True)
+        Avalon.info(f'ADAPTER={interface.interface}', log=True)
+        Avalon.info(f'GATEWAY_MAC={interface.gateway_mac}', log=True)
+        Avalon.info(f'SELF_IP={interface.get_ip()}', log=True)
         if interface.gateway_mac:
             ac.block(interface.gateway_mac)
     else:
         # Create one instance for each interface
         for interface in interfaces:
             interface = Interface(interface)
-            ifaceobjs.append(interface)
+            interface_objects.append(interface)
 
         # make each interface update gateway mac address
-        for interface in ifaceobjs:
+        for interface in interface_objects:
             interface.update_gateway_addrs()
             if interface.gateway_mac or interface.get_ip():
-                Avalon.info('ADAPTER={}'.format(interface.interface), log=True)
-                Avalon.info('GATEWAY_MAC={}'.format(interface.gateway_mac), log=True)
-                Avalon.info('SELF_IP={}'.format(interface.get_ip()), log=True)
+                Avalon.info(f'ADAPTER={interface.interface}', log=True)
+                Avalon.info(f'GATEWAY_MAC={interface.gateway_mac}', log=True)
+                Avalon.info(f'SELF_IP={interface.get_ip()}', log=True)
 
-        for interface in ifaceobjs:
+        for interface in interface_objects:
             if interface.gateway_mac:
                 ac.append_allowed_mac(interface.gateway_mac)
 
@@ -147,19 +144,19 @@ def read_config():
 
     TODO: Do something about KeyError
     """
-    if not os.path.isfile(CONFPATH):  # Configuration not found
+    if not os.path.isfile(args.config):  # Configuration not found
         Avalon.error('SCUTUM configuration file not found! Please re-install SCUTUM!')
         Avalon.warning('Please run \"scutum --install\" before using it for the first time')
-        raise FileNotFoundError(CONFPATH)
+        raise FileNotFoundError(args.config)
 
     # Initialize python confparser and read config
-    with open(CONFPATH, 'r') as raw_config:
+    with open(args.config, 'r') as raw_config:
         config = json.load(raw_config)
 
     # Get controlled interfaces
     interfaces = []
     for interface in config['Interfaces']['interfaces']:
-        if os.path.isdir('/sys/class/net/{}'.format(interface)):
+        if os.path.isdir(f'/sys/class/net/{interface}'):
             # Check if interface is connected
             interfaces.append(interface)
 
@@ -175,48 +172,48 @@ def read_config():
     return interfaces, network_controllers, ufw_handled, arp_driver
 
 
-# -------------------------------- Execute
-
 args = process_arguments()
 
 if not (args.enable or args.disable):
     print_icon()
 
-# Unprivileged Section
+# unprivileged section
 
-# If '--version'
+# if '--version'
 if args.version:  # prints program legal / dev / version info
-    print('Current Version: {}'.format(VERSION))
+    print(f'SCUTUM Version: {VERSION}')
     print('Author: K4YT3X')
     print('License: GNU GPL v3')
-    print('Github Page: https://github.com/K4YT3X/scutum')
+    print('Github Page: https://github.com/k4yt3x/scutum')
     print('Contact: k4yt3x@k4yt3x.com\n')
     exit(0)
 
-# If '--status'
+# if '--status'
 elif args.status:
-    # Asks systemd-sysv-install if scutum is enabled
+    # asks systemd-sysv-install if scutum is enabled
     # by systemctl. May not apply to non-Debian distros
     if subprocess.run(['/lib/systemd/systemd-sysv-install', 'is-enabled', 'scutum']).returncode:
-        Avalon.info('{}SCUTUM is {}{}{}\n'.format(Avalon.FM.RST, Avalon.FG.R, 'NOT ENABLED', Avalon.FM.RST))
+        Avalon.info(f'{Avalon.FM.RST}SCUTUM is {Avalon.FG.R}NOT ENABLED{Avalon.FM.RST}\n')
     else:
-        Avalon.info('{}SCUTUM is {}{}{}\n'.format(Avalon.FM.RST, Avalon.FG.G, 'ENABLED', Avalon.FM.RST))
+        Avalon.info(f'{Avalon.FM.RST}SCUTUM is {Avalon.FG.G}ENABLED{Avalon.FM.RST}\n')
     exit(0)
 
-# If user not root (UID != 0)
+# if user not root (UID != 0)
 elif os.getuid() != 0:
-    # Multiple components require root access
+    # multiple components require root access
     Avalon.error('SCUTUM must be run as root')
     Avalon.error('Exiting')
     exit(1)
 
-# Set an exit code
+
+# privileged section
+
+# set an exit code
 exit_code = 0
 
-# Privileged Section
 try:
-    # Initialize installer
-    installer = Installer(CONFPATH)
+    # initialize installer
+    installer = Installer(args.config)
 
     if not (args.install or args.uninstall):
         # Some objects don't need to be initialized during
@@ -261,7 +258,7 @@ try:
             installer.install_nm_scripts(network_controllers)
 
         # Lock gateway MAC on current networks
-        ifaceobjs = []
+        interface_objects = []
         update_arp()
 
         if ufw_handled:
@@ -289,13 +286,15 @@ try:
         ufwctrl.disable()
 
     # If no arguments given
+    # updates firewall status by default
     else:
-        ifaceobjs = []  # a list to store internet controller objects
+        interface_objects = []  # a list to store internet controller objects
         update_arp()
 
         if ufw_handled:
             ufwctrl.enable()
         Avalon.info('OK')
+
 except KeyboardInterrupt:
     Avalon.warning('KeyboardInterrupt caught')
     Avalon.warning('Exiting')
@@ -303,18 +302,21 @@ except KeyboardInterrupt:
     error_string = traceback.format_exc()
     print(error_string, file=sys.stderr)
     syslog.syslog(syslog.LOG_ERR, error_string)
+
 except KeyError:
-    Avalon.error('The program configuration file is broken for some reason')
-    Avalon.error('You should reinstall SCUTUM to repair the configuration file\n')
+    Avalon.error('The configuration file is broken')
+    Avalon.error('Try reinstalling SCUTUM to repair the configuration file')
     exit_code = 1
     error_string = traceback.format_exc()
     print(error_string, file=sys.stderr)
     syslog.syslog(syslog.LOG_ERR, error_string)
-except Exception as e:
+
+except Exception:
     Avalon.error('SCUTUM has encountered an error')
     exit_code = 1
     error_string = traceback.format_exc()
     print(error_string, file=sys.stderr)
     syslog.syslog(syslog.LOG_ERR, error_string)
+
 finally:
     exit(exit_code)
