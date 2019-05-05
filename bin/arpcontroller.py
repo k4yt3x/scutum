@@ -4,12 +4,10 @@
 Name: SCUTUM ARP Controller
 Author: K4YT3X
 Date Created: October 31, 2018
-Last Modified: October 31, 2018
+Last Modified: May 5, 2019
 
 Description: This class controls all ARP
 related operations.
-
-Version 1.0.1
 """
 from avalon_framework import Avalon
 from utilities import Utilities
@@ -42,10 +40,10 @@ class ArpController():
             Utilities.execute(['arptables', '-A', 'INPUT', '--source-mac', mac_address, '-j', 'ACCEPT'])
         elif interface:
             # If an interface is provided, limit rule to interface
-            Utilities.execute(['nft', 'add', 'rule', 'inet', 'filter', 'input', 'iif', interface, 'ether', 'saddr', '!=', mac_address, 'drop'])
+            Utilities.execute(['nft', 'add', 'rule', 'arp', 'filter', 'INPUT', 'iif', interface, 'ether', 'saddr', '!=', mac_address, 'drop'])
         else:
             # If no interface specified, allow only this MAC globally
-            Utilities.execute(['nft', 'add', 'rule', 'inet', 'filter', 'input', 'ether', 'saddr', '!=', mac_address, 'drop'])
+            Utilities.execute(['nft', 'add', 'rule', 'arp', 'filter', 'INPUT', 'ether', 'saddr', '!=', mac_address, 'drop'])
 
     def flush_all(self):
         """ Accept all incoming connections
@@ -58,4 +56,4 @@ class ArpController():
             Utilities.execute(['arptables', '-P', 'INPUT', 'ACCEPT'])
             Utilities.execute(['arptables', '--flush'])
         else:
-            Utilities.execute(['nft', 'flush', 'chain', 'inet', 'filter', 'input'])
+            Utilities.execute(['nft', 'flush', 'chain', 'arp', 'filter', 'INPUT'])
