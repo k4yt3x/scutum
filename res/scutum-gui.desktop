@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=SCUTUM GUI
-Encoding=UTF-8
-Exec=sh -c "/usr/share/scutum/bin/scutum-gui"
-Icon=/usr/share/scutum/res/scutum-gui.png
-Terminal=false
-Type=Application
