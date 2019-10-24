@@ -20,3 +20,8 @@ class Utils:
     def exec(command: list, **kwargs):
         Avalon.debug_info(f'Executing: {" ".join(command)}')
         return subprocess.run(command, **kwargs).returncode
+
+    @staticmethod
+    def get_exec_output(command: list, **kwargs):
+        Avalon.debug_info(f'Executing: {" ".join(command)}')
+        return subprocess.check_output(command, **kwargs).decode()

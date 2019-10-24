@@ -31,8 +31,9 @@ your netfilter/iptables firewall using UFW.
 
 # built-in imports
 import argparse
-import socket
-import struct
+import pathlib
+import contextlib
+import os
 
 # third-party imports
 from avalon_framework import Avalon
@@ -40,6 +41,7 @@ from avalon_framework import Avalon
 # local imports
 from arp import Arp
 from ufw import Ufw
+from interface import Interface
 
 # master version number
 VERSION = '3.0.0'
@@ -55,7 +57,11 @@ def process_arguments() -> argparse.Namespace:
 
     # general firewall controls
     control_group = parser.add_argument_group('Firewall Controls')
-    control_group.add_argument('-r', '--reset', help='allow all traffic', action='store_true')
+    control_group.add_argument('-i', '--interface', help='update the specified interface', action='store')
+
+    action_group = parser.add_mutually_exclusive_group(required=True)
+    action_group.add_argument('-u', '--update', help='update ARP blocking rules', action='store_true')
+    action_group.add_argument('-r', '--reset', help='discard ARP blocking rules', action='store_true')
 
     # miscellaneous arguments
     misc_group = parser.add_argument_group('Miscellaneous')
@@ -77,34 +83,19 @@ def print_icon():
     print(f'{Avalon.FM.BD}{f"Version {VERSION}":^44}{Avalon.FM.RST}\n')
 
 
-def get_default_gateway() -> str:
-    """ get Linux default gateway
+def list_active_interfaces() -> list:
+    active_interfaces = []
 
-    Returns:
-        str -- IP address of default gateway
-    """
-    with open('/proc/net/route') as route_file:
-        for line in route_file:
-            fields = line.strip().split()
-            if fields[1] != '00000000' or not int(fields[3], 16) & 2:
-                continue
-            return socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
+    # Linux virtual interface status files directory
+    sys_class_net = pathlib.Path('/sys/class/net')
 
+    for interface in sys_class_net.iterdir():
+        operstate = open(interface / 'operstate', 'r').readlines()[0].strip('\n')
+        interface_type = open(interface / 'type', 'r').readlines()[0].strip('\n')
+        if interface_type == '1' and operstate == 'up':
+            active_interfaces.append(interface.name)
 
-def get_mac_by_ip(ip: str) -> str:
-    """get MAC address by IP
-
-    Arguments:
-        ip {str} -- IP address to lookup
-
-    Returns:
-        str -- MAC address of IP
-    """
-    with open('/proc/net/arp') as arp_file:
-        for line in [r for r in arp_file if r.split()[0] == ip]:
-            for field in line.strip().split():
-                if len(field) == 17 and ':' in field:
-                    return field
+    return active_interfaces
 
 
 # this is not a library
@@ -126,20 +117,50 @@ if args.version:  # prints program legal / dev / version info
     print('Contact: k4yt3x@k4yt3x.com\n')
     exit(0)
 
+# check user privilege
+if os.getuid() != 0:
+    Avalon.error('Root privilege is required')
+    raise PermissionError('insufficient privilege')
+
 # initialize ARP controller
 arp = Arp()
 
 # initialize UFW controller
 ufw = Ufw()
 
-# -r, --reset
-if args.reset:
-    arp.reset()
-    ufw.disable()
 
-# default action without arguments
+# if an interface name is specified
+# perform action only on the specified interface
+if args.interface:
+
+    if args.update:
+        interface_object = Interface(args.interface)
+        gateway_mac = interface_object.get_gateway_mac()
+        arp.allow_mac(gateway_mac, args.interface)
+        ufw.enable()
+
+    elif args.reset:
+        arp.discard_interface_rules(args.interface)
+
+# if no interface is specified
+# perform action all interfaces
 else:
-    default_gateway_ip = get_default_gateway()
-    default_gateway_mac = get_mac_by_ip(default_gateway_ip)
-    arp.allow_mac(default_gateway_mac)
-    ufw.enable()
+
+    # if -u, --update
+    if args.update:
+
+        interfaces = list_active_interfaces()
+
+        Avalon.debug_info(f'Active interfaces: {" ".join(interfaces)}')
+
+        for interface in interfaces:
+            interface_object = Interface(interface)
+            gateway_mac = interface_object.get_gateway_mac()
+            arp.allow_mac(gateway_mac, interface)
+
+        ufw.enable()
+
+    # if -r, --reset
+    elif args.reset:
+        arp.reset()
+        ufw.disable()
